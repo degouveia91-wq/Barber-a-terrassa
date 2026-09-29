@@ -1,30 +1,29 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Barberbox | DUEÑO</title>
+<title>Barberbox | DUEÑO FIX</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>*{box-sizing:border-box}body{margin:0;background:#0a0a0a;color:#fff;font-family:system-ui;overflow-x:hidden}
 .header{padding:14px 16px;border-bottom:1px solid #222;display:flex;justify-content:space-between;align-items:center;background:#0a0a0a;position:sticky;top:0;z-index:10}
-.badge{font-size:11px;background:#111;border:1px solid #333;padding:6px 12px;border-radius:20px}
-.badge.ok{color:#22c55e;border-color:#22c55e66;background:#22c55e11}
-.badge.gold{color:#000;background:#f5c542;border-color:#f5c542;font-weight:800}
+.badge{font-size:11px;background:#111;border:1px solid #333;padding:6px 12px;border-radius:20px}.badge.ok{color:#22c55e;border-color:#22c55e66;background:#22c55e11}.badge.gold{color:#000;background:#f5c542;border-color:#f5c542;font-weight:800}.badge.err{color:#ef4444;border-color:#ef444455;background:#ef444411}
 .wrap{max-width:760px;margin:0 auto;padding:14px;width:100%}
 .card{background:#151515;border:1px solid #222;border-radius:16px;padding:14px;margin-bottom:12px;overflow:hidden}
 input{width:100%;background:#0f0f0f;border:1px solid #2a2a2a;color:#fff;padding:12px;border-radius:10px;margin-bottom:8px;font-size:14px}
 .btn{padding:10px 14px;border-radius:8px;border:0;font-weight:800;cursor:pointer}
-.btn-gold{background:#f5c542;color:#000}.btn-white{background:#fff;color:#000}.btn-green{background:#22c55e;color:#000}
+.btn-gold{background:#f5c542;color:#000}.btn-white{background:#fff;color:#000}.btn-green{background:#22c55e;color:#000}.btn-red{background:#ef4444;color:#fff}
 .client{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 0;border-bottom:1px solid #1e1e1e}
 .client.top{background:#f5c5420a;border:1px solid #f5c54222;border-radius:12px;padding:12px;margin-bottom:6px}
 .progress{height:6px;background:#222;border-radius:10px;overflow:hidden;margin:4px 0}.progress-bar{height:100%;background:#f5c542;transition:width .3s}
-#login{max-width:360px;margin:80px auto;padding:20px}
-.msg{padding:10px;border-radius:8px;margin:8px 0;text-align:center;font-size:12px;display:none}
+#login{max-width:380px;margin:80px auto;padding:20px}
+.msg{padding:12px;border-radius:10px;margin:10px 0;text-align:center;font-size:12px;display:none;word-break:break-word}
 .msg.ok{display:block;background:#22c55e11;border:1px solid #22c55e55;color:#22c55e}
 .msg.err{display:block;background:#ef444411;border:1px solid #ef444455;color:#ef4444}
 .msg.warn{display:block;background:#f5c54211;border:1px solid #f5c54255;color:#f5c542}
 table{width:100%;border-collapse:collapse} th{color:#666;font-size:10px;text-align:left;padding:6px} td{padding:6px}
+.codebox{background:#0f0f0f;border:1px solid #333;border-radius:8px;padding:10px;font-family:monospace;font-size:11px;color:#888;margin:8px 0;white-space:pre-wrap}
 </style></head><body>
 <div id="login" class="card">
 <h3 style="color:#f5c542;margin:0 0 10px">ÁREA DUEÑO - BARBERBOX</h3>
-<p style="color:#888;font-size:13px">Clave privada</p>
+<p style="color:#888;font-size:13px">Clave privada (1999)</p>
 <input id="pass" type="password" placeholder="••••">
 <button class="btn btn-gold" style="width:100%;padding:14px" onclick="checkPass()">ENTRAR</button>
 <div id="login-msg" class="msg"></div>
@@ -40,13 +39,27 @@ table{width:100%;border-collapse:collapse} th{color:#666;font-size:10px;text-ali
 </div>
 <div class="wrap">
 
+<div id="rls-alert" class="card" style="display:none;border-color:#ef4444;background:#ef444411">
+<h3 style="color:#ef4444;margin:0 0 6px;font-size:12px">⚠️ BLOQUEO DE SUPABASE DETECTADO - HAY QUE DESBLOQUEAR 1 VEZ</h3>
+<p style="color:#aaa;font-size:12px;margin:0 0 8px">La X y CANJEAR no funcionan porque Supabase tiene RLS activado. Copia esto y ejecútalo en Supabase > SQL Editor > Run:</p>
+<div class="codebox">-- COPIA Y EJECUTA ESTO EN SUPABASE SQL EDITOR:
+alter table clients disable row level security;
+alter table pending_requests disable row level security;
+-- O si quieres mantener RLS, crea políticas:
+drop policy if exists "Allow all for anon" on clients;
+create policy "Allow all for anon" on clients for all using (true) with check (true);
+drop policy if exists "Allow all for anon" on pending_requests;
+create policy "Allow all for anon" on pending_requests for all using (true) with check (true);</div>
+<button class="btn btn-white" onclick="document.getElementById('rls-alert').style.display='none'" style="padding:6px 10px;font-size:11px">Ya lo hice, ocultar</button>
+</div>
+
 <div class="card"><h3 style="margin:0 0 10px;color:#f5c542;font-size:13px">🔔 SOLICITUDES POR ACEPTAR</h3>
 <div id="pending-list"><small style="color:#666">Cargando...</small></div>
 <div id="pending-msg" class="msg"></div>
 </div>
 
 <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-<h3 style="margin:0;color:#888;font-size:11px">CLIENTES - ORDEN MAYOR A MENOR PUNTOS (200 = 50% OFF - TOPE)</h3>
+<h3 style="margin:0;color:#888;font-size:11px">CLIENTES - ORDEN MAYOR A MENOR (200=50% OFF)</h3>
 <input id="q" placeholder="Buscar" oninput="filterList()" style="max-width:120px;padding:8px;font-size:12px">
 </div>
 <div id="list"></div>
@@ -62,7 +75,6 @@ table{width:100%;border-collapse:collapse} th{color:#666;font-size:10px;text-ali
 <td><button class="btn btn-gold" onclick="addClient()" style="width:100%">GUARDAR</button></td>
 </tr>
 </table>
-<small style="color:#666">Si el móvil ya existe, suma puntos (tope 200). Se guarda en Supabase al instante.</small>
 <div id="manual-msg" class="msg"></div>
 </div>
 
@@ -85,7 +97,7 @@ function checkPass(){
     loadOwner();
   }else{
     const m=document.getElementById('login-msg');
-    m.style.display='block';m.className='msg err';m.innerText='Clave incorrecta';
+    m.style.display='block';m.className='msg err';m.innerText='Clave incorrecta (es 1999)';
   }
 }
 function logoutDueno(){
@@ -96,12 +108,14 @@ function logoutDueno(){
 }
 
 async function loadOwner(){
-  // 1. Clientes ordenados de MAYOR a MENOR puntos
   const {data,error}=await sb.from('clients').select('*').order('points',{ascending:false}).limit(500);
   if(error){
-    document.getElementById('status').innerText=error.message;
+    document.getElementById('status').innerText='Error: '+error.message;
     document.getElementById('status').className='badge err';
     document.getElementById('list').innerHTML='<small style="color:#ff4444">'+error.message+'</small>';
+    if(error.message.includes('row-level security')||error.message.includes('RLS')||error.message.includes('policy')){
+      document.getElementById('rls-alert').style.display='block';
+    }
     return;
   }
   all=data||[];
@@ -110,7 +124,6 @@ async function loadOwner(){
   document.getElementById('status').className='badge ok';
   render(all);
 
-  // 2. Solicitudes pendientes
   const {data:pend,error:e2}=await sb.from('pending_requests').select('*').eq('status','pendiente').order('created_at',{ascending:false}).limit(100);
   if(e2){
     document.getElementById('pending-list').innerHTML='<small style="color:#ff4444">Error: '+e2.message+'</small>';
@@ -147,13 +160,13 @@ function render(arr){
           ${isTop?'<span style="background:#22c55e;color:#000;font-size:9px;padding:2px 6px;border-radius:10px;font-weight:800">50% OFF</span>':''}
         </div>
         <div class="progress"><div class="progress-bar" style="width:${pct}%;background:${isTop?'#22c55e':'#f5c542'}"></div></div>
-        <small style="color:${isTop?'#22c55e':'#888'}">${c.points}/200 pts ${isTop?' - TOPE ALCANZADO - No suma más' : ''}</small>
+        <small style="color:${isTop?'#22c55e':'#888'}">${c.points}/200 pts ${isTop?' - TOPE' : ''}</small>
       </div>
       <div style="display:flex;gap:4px;flex-shrink:0;align-items:center">
-        ${isTop?`<button onclick="canjear('${c.id}')" class="btn btn-green" style="padding:8px 10px;font-size:11px">CANJEAR (-200)</button>`:
+        ${isTop?`<button onclick="canjear('${c.id}')" id="btn-canjear-${c.id}" class="btn btn-green" style="padding:10px 12px;font-size:11px">CANJEAR (0)</button>`:
           `<button onclick="addPoints('${c.id}',10)" class="btn btn-gold" style="padding:6px 8px">+10</button>
            <button onclick="addPoints('${c.id}',20)" class="btn btn-white" style="padding:6px 8px">+20</button>`}
-        <button onclick="delClient('${c.id}')" title="Borrar cliente" style="background:#1f1f1f;color:#ff4444;border:1px solid #333;padding:8px 10px;border-radius:8px;font-weight:800">X</button>
+        <button onclick="delClient('${c.id}')" id="btn-del-${c.id}" title="Borrar" style="background:#1f1f1f;color:#ff4444;border:1px solid #333;padding:8px 10px;border-radius:8px;font-weight:800">X</button>
       </div>
     </div>`
   }).join('');
@@ -176,78 +189,126 @@ async function addClient(){
     const {data:ex}=await sb.from('clients').select('*').eq('mobile',mobile).maybeSingle();
     if(ex){
       const nuevo=Math.min(200, ex.points + points);
-      if(ex.points>=200){msg.className='msg warn';msg.innerText='Ya tiene 200 pts - tope alcanzado. Usa CANJEAR.';return;}
-      const {error}=await sb.from('clients').update({name,points:nuevo,last_visit:new Date().toISOString()}).eq('id',ex.id);
+      if(ex.points>=200){msg.className='msg warn';msg.innerText='Ya tiene 200 pts - usa CANJEAR.';return;}
+      const {error}=await sb.from('clients').update({name,points:nuevo,last_visit:new Date().toISOString()}).eq('id',ex.id).select();
       if(error)throw error;
-      msg.innerText='Cliente actualizado a '+nuevo+' pts ✓ (tope 200)';
+      msg.innerText='Actualizado a '+nuevo+' pts ✓';
     }else{
-      const {error}=await sb.from('clients').insert({name,mobile,points:Math.min(200,points)});
+      const {error}=await sb.from('clients').insert({name,mobile,points:Math.min(200,points)}).select();
       if(error)throw error;
-      msg.innerText='Cliente guardado ✓';
+      msg.innerText='Guardado ✓';
     }
     document.getElementById('name').value='';document.getElementById('mobile').value='';
     loadOwner();
     setTimeout(()=>msg.style.display='none',2500);
-  }catch(e){msg.className='msg err';msg.innerText='Error: '+e.message;}
+  }catch(e){
+    msg.className='msg err';msg.innerText='Error: '+e.message;
+    if(e.message.includes('row-level')||e.message.includes('policy')||e.message.includes('RLS')) document.getElementById('rls-alert').style.display='block';
+  }
 }
 
 async function addPoints(id,pts){
   const cli=all.find(c=>c.id===id); if(!cli) return;
-  if(cli.points>=200){alert('Ya tiene 200 pts - tope alcanzado. Dale a CANJEAR para resetear.');return;}
+  if(cli.points>=200){alert('Ya tiene 200 pts - usa CANJEAR.');return;}
   const nuevo=Math.min(200, cli.points+pts);
-  const {error}=await sb.from('clients').update({points:nuevo,last_visit:new Date().toISOString()}).eq('id',id);
-  if(error){alert(error.message);return;}
+  const {error}=await sb.from('clients').update({points:nuevo,last_visit:new Date().toISOString()}).eq('id',id).select();
+  if(error){
+    alert('Error sumando: '+error.message);
+    if(error.message.includes('row-level')||error.message.includes('policy')) document.getElementById('rls-alert').style.display='block';
+    return;
+  }
   loadOwner();
 }
 
+// --- FIX 2: CANJEAR AHORA SÍ REINICIA A 0 ---
 async function canjear(id){
-  if(!confirm('¿Cliente canjeó el 50% OFF? Se reseteará a 0 puntos.')) return;
-  const {error}=await sb.from('clients').update({points:0,last_visit:new Date().toISOString()}).eq('id',id);
-  if(error){alert(error.message);return;}
-  loadOwner();
-}
-
-async function delClient(id){
   const cli=all.find(c=>c.id===id);
-  if(!cli){alert('Cliente no encontrado');return;}
-  if(!confirm('¿Borrar a '+cli.name+' ('+cli.mobile+')? Se borrarán también sus solicitudes pendientes.')) return;
+  if(!cli) return;
+  if(!confirm('¿'+cli.name+' canjeó 50% OFF?\n\nSe pondrá a 0 puntos y volverá a empezar.')) return;
+  const btn=document.getElementById('btn-canjear-'+id);
+  if(btn){btn.innerText='Canjeando...';btn.disabled=true;}
   const msg=document.getElementById('del-msg');
   try{
-    msg.style.display='block';msg.className='msg ok';msg.innerText='Borrando...';
-    // Borra solicitudes primero
-    const {error:e1}=await sb.from('pending_requests').delete().eq('mobile',cli.mobile);
-    if(e1) console.log('Error borrando solicitudes',e1);
-    const {error:e2}=await sb.from('clients').delete().eq('id',id);
-    if(e2) throw e2;
-    msg.innerText='Cliente '+cli.name+' borrado ✓';
-    setTimeout(()=>msg.style.display='none',2000);
+    msg.style.display='block';msg.className='msg ok';msg.innerText='Canjeando 50% OFF para '+cli.name+'...';
+    // 1. Pon a 0 puntos
+    const {data,error}=await sb.from('clients').update({points:0,last_visit:new Date().toISOString()}).eq('id',id).select();
+    if(error) throw error;
+    if(!data||data.length===0) throw new Error('No se actualizó (RLS bloquea UPDATE). Ejecuta el SQL de arriba en Supabase.');
+    msg.innerText='¡Canjeado! '+cli.name+' ahora tiene 0 pts ✓';
+    // 2. Borra también sus solicitudes pendientes antiguas para limpiar
+    await sb.from('pending_requests').delete().eq('mobile',cli.mobile);
+    setTimeout(()=>msg.style.display='none',3000);
     loadOwner();
   }catch(e){
-    msg.className='msg err';msg.innerText='Error al borrar: '+e.message+' - Revisa políticas RLS en Supabase (DELETE debe estar permitido)';
+    msg.className='msg err';
+    msg.innerText='Error CANJEAR: '+e.message;
+    document.getElementById('rls-alert').style.display='block';
+    if(btn){btn.innerText='CANJEAR (0)';btn.disabled=false;}
+  }
+}
+
+// --- FIX 1: X AHORA SÍ BORRA ---
+async function delClient(id){
+  const cli=all.find(c=>c.id===id);
+  if(!cli){alert('Cliente no encontrado en memoria');return;}
+  if(!confirm('¿Borrar DEFINITIVAMENTE a '+cli.name+' ('+cli.mobile+')?\n\nSe borrará cliente + sus solicitudes.')) return;
+  const btn=document.getElementById('btn-del-'+id);
+  if(btn){btn.innerText='...';btn.disabled=true;}
+  const msg=document.getElementById('del-msg');
+  try{
+    msg.style.display='block';msg.className='msg ok';msg.innerText='Borrando a '+cli.name+'...';
+    
+    // Paso 1: Borra solicitudes
+    const {error:e1}=await sb.from('pending_requests').delete().eq('mobile',cli.mobile);
+    if(e1) console.warn('Error borrando solicitudes (puede ser RLS):',e1);
+    
+    // Paso 2: Borra cliente - con .select() para saber si realmente borró
+    const {data,error:e2}=await sb.from('clients').delete().eq('id',id).select();
+    if(e2) throw e2;
+    if(!data||data.length===0){
+      throw new Error('Supabase no borró nada. RLS está bloqueando DELETE. Ejecuta el SQL de arriba.');
+    }
+    msg.innerText='✓ Cliente '+cli.name+' borrado definitivamente';
+    setTimeout(()=>msg.style.display='none',2500);
+    loadOwner();
+  }catch(e){
+    console.error(e);
+    msg.className='msg err';
+    msg.innerText='Error borrando X: '+e.message;
+    document.getElementById('rls-alert').style.display='block';
+    if(btn){btn.innerText='X';btn.disabled=false;}
   }
 }
 
 async function aprobarYsumar(reqId,mobile,pts){
   const {data:cli}=await sb.from('clients').select('*').eq('mobile',mobile).maybeSingle();
-  if(!cli){alert('Cliente no encontrado en clients');return;}
-  if(cli.points>=200){alert('Este cliente ya tiene 200 pts - tope. Canjéalo primero.'); 
-    await sb.from('pending_requests').update({status:'rechazado - tope 200'}).eq('id',reqId);
+  if(!cli){alert('Cliente no encontrado');return;}
+  if(cli.points>=200){alert('Ya tiene 200 pts - usa CANJEAR.'); 
+    await sb.from('pending_requests').update({status:'rechazado tope 200'}).eq('id',reqId);
     loadOwner(); return;
   }
   const nuevo=Math.min(200, cli.points+pts);
-  const {error}=await sb.from('clients').update({points:nuevo,last_visit:new Date().toISOString()}).eq('id',cli.id);
-  if(error){alert(error.message);return;}
+  const {error}=await sb.from('clients').update({points:nuevo,last_visit:new Date().toISOString()}).eq('id',cli.id).select();
+  if(error){
+    alert('Error: '+error.message);
+    if(error.message.includes('row-level')||error.message.includes('policy')) document.getElementById('rls-alert').style.display='block';
+    return;
+  }
   await sb.from('pending_requests').update({status:'verificado'}).eq('id',reqId);
   const m=document.getElementById('pending-msg');
-  m.style.display='block';m.className='msg ok';m.innerText='+'+pts+' pts aprobados para '+cli.name+' -> '+nuevo+'/200';
+  m.style.display='block';m.className='msg ok';m.innerText='+'+pts+' aprobados -> '+cli.name+' ahora '+nuevo+'/200';
   setTimeout(()=>m.style.display='none',2500);
   loadOwner();
 }
 
 async function rechazarReq(id){
-  if(!confirm('¿Borrar esta solicitud?'))return;
-  const {error}=await sb.from('pending_requests').delete().eq('id',id);
-  if(error){alert('Error: '+error.message);return;}
+  if(!confirm('¿Borrar solicitud?'))return;
+  const {error}=await sb.from('pending_requests').delete().eq('id',id).select();
+  if(error){
+    alert('Error: '+error.message);
+    document.getElementById('rls-alert').style.display='block';
+    return;
+  }
   loadOwner();
 }
 
