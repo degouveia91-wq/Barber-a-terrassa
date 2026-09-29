@@ -1,87 +1,170 @@
-<!DOCTYPE html><html lang='es'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>BarberBox</title><script src='https://cdn.tailwindcss.com'></script></head><body><div id='root'></div>
-<script type='module'>
-import React from "https://esm.sh/react@18.3.1";
-import {createRoot} from "https://esm.sh/react-dom@18.3.1/client";
-const {useState,useEffect}=React;
-const KEYS={clients:"bb_clients",pending:"bb_pending",active:"bb_client_active_v2",active_old:"bb_client_active",pin:"bb_owner_pin"};
-const getClients=()=>{try{return JSON.parse(localStorage.getItem(KEYS.clients)||"[]")}catch{return[]}};
-const saveClients=(l)=>localStorage.setItem(KEYS.clients,JSON.stringify(l));
-const getPending=()=>{try{return JSON.parse(localStorage.getItem(KEYS.pending)||"[]")}catch{return[]}};
-const savePending=(l)=>localStorage.setItem(KEYS.pending,JSON.stringify(l));
-const getActive=()=>{try{let r=localStorage.getItem(KEYS.active);if(r){let d=JSON.parse(r);if(d&&d.id)return d}let o=localStorage.getItem(KEYS.active_old);if(o){let p;try{p=JSON.parse(o)}catch{p=o}let id=typeof p==='string'?p.replace(/"/g,''):p?.id;if(id){let all=getClients();let f=all.find(c=>c.id===id);if(f){localStorage.setItem(KEYS.active,JSON.stringify(f));return f}return {id}} }}catch{}return null};
-const setActive=(c)=>{localStorage.setItem(KEYS.active,JSON.stringify({id:c.id,name:c.name,mobile:c.mobile,points:c.points}));localStorage.removeItem(KEYS.active_old)};
-const clearActive=()=>{localStorage.removeItem(KEYS.active);localStorage.removeItem(KEYS.active_old)};
-
-function Client(){
- const [screen,setScreen]=useState("loading");const [client,setClient]=useState(null);const [name,setName]=useState("");const [mobile,setMobile]=useState("");const [msg,setMsg]=useState(null);
- useEffect(()=>{let a=getActive();let all=getClients();if(a){let f=all.find(c=>c.id===a.id);if(f){setClient(f);setActive(f);setScreen("wallet");return;}}setScreen("nfc")},[]);
- useEffect(()=>{if(!client)return;let id=setInterval(()=>{let all=getClients();let u=all.find(c=>c.id===client.id);if(u&&u.points!==client.points){setClient(u);setActive(u)}},2000);return()=>clearInterval(id)},[client]);
- const show=(t)=>{setMsg(t);setTimeout(()=>setMsg(null),3000)};
- const reg=(e)=>{e.preventDefault();if(!name.trim()||!mobile.trim()){show("Completa datos");return;}let all=getClients();let clean=s=>s.replace(/\s/g,"").replace(/\+/g,"");let ex=all.find(c=>clean(c.mobile)===clean(mobile));if(ex){setActive(ex);setClient(ex);setScreen("wallet");show("Bienvenido de nuevo, ya estabas registrado");return;}let nc={id:Date.now().toString(36),name:name.trim(),mobile:mobile.trim(),points:0,createdAt:Date.now()};saveClients([nc,...all]);setActive(nc);setClient(nc);setScreen("wallet");show("Registro guardado - No volveras a escribir tus datos");};
- const req=(type)=>{let map={sello:10,resena:20,canje:-200};let pend=getPending();if(pend.find(p=>p.clientId===client.id&&p.type===type&&Date.now()-p.createdAt<20000)){show("Solicitud ya enviada");return;}let r={id:Math.random().toString(36).slice(2,7),clientId:client.id,name:client.name,mobile:client.mobile,type,points:map[type],createdAt:Date.now()};savePending([r,...pend]);show("Solicitud enviada al barbero");};
- const redeem=()=>{let all=getClients().map(c=>c.id===client.id?{...c,points:c.points-200}:c);saveClients(all);let u=all.find(c=>c.id===client.id);setClient(u);setActive(u);show("50% OFF canjeado");};
- if(screen==="loading")return React.createElement("div",{className:"min-h-screen bg-black text-white/40 flex items-center justify-center"},"Cargando...");
- return React.createElement("div",{className:"min-h-screen bg-[#0A0A0A] text-white flex flex-col items-center p-5"},
-  React.createElement("div",{className:"pt-6 font-bold text-[#D4AF37] tracking-[0.3em] text-[12px]"},"BARBERBOX"),
-  screen==="nfc"&&React.createElement("div",{className:"flex-1 flex flex-col items-center justify-center text-center max-w-[380px] w-full"},
-   React.createElement("div",{className:"text-[60px] mt-10"},"📲"),
-   React.createElement("h1",{className:"text-[26px] font-extrabold mt-4"},"NFC DETECTADO"),
-   React.createElement("p",{className:"text-white/50 text-[14px] mt-2"},"Registro unico - despues entras automatico"),
-   getActive()&&React.createElement("button",{onClick:()=>{let a=getActive();let f=getClients().find(c=>c.id===a.id);if(f){setClient(f);setScreen("wallet")}},className:"mt-6 w-full h-[52px] bg-white text-black rounded-full font-bold"},"ENTRAR COMO "+(getActive()?.name||"CLIENTE")),
-   React.createElement("button",{onClick:()=>setScreen("form"),className:"mt-4 w-full h-[52px] bg-[#D4AF37] text-black rounded-full font-bold"},"CONTINUAR")
-  ),
-  screen==="form"&&React.createElement("div",{className:"w-full max-w-[380px]"},
-   React.createElement("button",{onClick:()=>setScreen("nfc"),className:"text-white/40 mb-6"},"← Volver"),
-   React.createElement("h2",{className:"text-[22px] font-bold"},"Crea tu Wallet - Solo una vez"),
-   React.createElement("form",{onSubmit:reg,className:"mt-6 flex flex-col gap-4"},
-    React.createElement("input",{value:name,onChange:e=>setName(e.target.value),placeholder:"Nombre",className:"h-[52px] bg-[#1A1A1A] rounded-xl px-4"}),
-    React.createElement("input",{value:mobile,onChange:e=>setMobile(e.target.value),placeholder:"Movil",className:"h-[52px] bg-[#1A1A1A] rounded-xl px-4"}),
-    React.createElement("button",{type:"submit",className:"h-[52px] bg-[#D4AF37] text-black rounded-full font-bold"},"ENTRAR"),
-    React.createElement("p",{className:"text-[11px] text-white/30 text-center"},"Si tu movil ya existe, entraras directo")
-   )
-  ),
-  screen==="wallet"&&client&&React.createElement("div",{className:"w-full max-w-[380px] mt-6"},
-   React.createElement("div",{className:"bg-[#1A1A1A] rounded-[24px] p-6 border "+(client.points>=200?"border-[#D4AF37]":"border-white/10")},
-    client.points>=200&&React.createElement("div",{className:"text-center mb-4"},
-     React.createElement("div",{className:"text-[#D4AF37] font-extrabold"},"¡50% OFF DESBLOQUEADO!"),
-     React.createElement("button",{onClick:redeem,className:"mt-3 w-full h-[48px] bg-[#D4AF37] text-black rounded-full font-bold"},"CANJEAR 50% OFF")
-    ),
-    React.createElement("div",{className:"flex justify-between"},
-     React.createElement("div",null,React.createElement("div",{className:"text-[11px] text-white/40"},"CLIENTE"),React.createElement("div",{className:"font-bold text-[18px]"},client.name),React.createElement("div",{className:"text-[12px] text-white/40"},client.mobile),React.createElement("div",{className:"mt-2 text-[10px] bg-[#D4AF37]/20 text-[#D4AF37] px-2 py-1 rounded-full inline-block"},"✓ GUARDADO - NO TENDRAS QUE REGISTRARTE MAS")),
-     React.createElement("div",{className:"text-right"},React.createElement("div",{className:"text-[10px] text-[#D4AF37]"},"PUNTOS"),React.createElement("div",{className:"text-[36px] font-extrabold text-[#D4AF37]"},client.points))
-    ),
-    React.createElement("div",{className:"mt-4 h-[8px] bg-white/10 rounded-full overflow-hidden"},React.createElement("div",{className:"h-full bg-[#D4AF37]",style:{width:Math.min(100,client.points/200*100)+"%"}}))
-   ),
-   React.createElement("div",{className:"grid grid-cols-2 gap-3 mt-4"},
-    React.createElement("button",{onClick:()=>req("sello"),className:"h-[60px] bg-[#1A1A1A] rounded-xl"},"SELLO +10"),
-    React.createElement("button",{onClick:()=>req("resena"),className:"h-[60px] bg-[#1A1A1A] rounded-xl border border-[#D4AF37]/30"},"RESEÑA +20")
-   ),
-   React.createElement("button",{onClick:()=>{clearActive();setClient(null);setScreen("nfc")},className:"mt-6 text-[12px] text-white/30 underline mx-auto block"},"Cerrar sesion")
-  ),
-  msg&&React.createElement("div",{className:"fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#1A1A1A] border border-[#D4AF37]/30 px-5 py-3 rounded-full text-[13px]"},msg)
- );
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Barberbox | Cliente</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>*{box-sizing:border-box}body{margin:0;background:#0a0a0a;color:#fff;font-family:system-ui;overflow-x:hidden}
+.header{padding:16px;border-bottom:1px solid #222;text-align:center}
+.card{background:#151515;border:1px solid #222;border-radius:16px;padding:16px;margin:14px;max-width:480px;margin-left:auto;margin-right:auto}
+input{width:100%;background:#0f0f0f;border:1px solid #2a2a2a;color:#fff;padding:14px;border-radius:10px;margin-bottom:10px;font-size:16px}
+.btn{width:100%;padding:14px;border-radius:12px;border:0;font-weight:800;background:#f5c542;color:#000;cursor:pointer;font-size:15px}
+.btn:disabled{opacity:0.5;pointer-events:none;background:#333;color:#888}
+.btn-white{background:#fff;color:#000} .btn-white:disabled{background:#222;color:#555}
+.progress{height:12px;background:#222;border-radius:10px;overflow:hidden;margin:10px 0} .progress-bar{height:100%;background:#f5c542;transition:width .3s}
+.msg{padding:10px;border-radius:10px;margin:10px 0;text-align:center;font-size:13px;display:none} .msg.ok{display:block;background:#22c55e11;border:1px solid #22c55e55;color:#22c55e} .msg.warn{display:block;background:#f5c54211;border:1px solid #f5c54255;color:#f5c542} .msg.err{display:block;background:#ef444411;border:1px solid #ef444455;color:#ef4444}
+.small-hint{color:#888;font-size:11px;text-align:center;margin-top:6px}
+</style></head><body>
+<div class="header"><b>💈 BARBERBOX</b><br><small style="color:#888">200 puntos = 50% OFF · 1 por semana mínimo</small></div>
+<div id="not-registered" class="card" style="display:none">
+<h3 style="color:#f5c542;margin:0 0 8px">¡Bienvenido! NFC escaneado</h3>
+<p style="color:#888;font-size:13px;margin:0 0 12px">Regístrate una vez. Se queda guardado. Luego NFC entra directo a puntos.</p>
+<input id="c-name" placeholder="Tu nombre"><input id="c-mobile" placeholder="Tu móvil">
+<button id="btn-reg" class="btn">REGISTRARME</button>
+<div id="reg-msg" class="msg"></div>
+</div>
+<div id="registered" class="card" style="display:none">
+<h3 id="c-hello"></h3>
+<div style="text-align:center;margin:16px 0">
+<div style="font-size:64px;font-weight:900"><span id="c-points">0</span></div>
+<div style="color:#888;font-size:13px">/ 200 puntos para 50% OFF</div>
+<div class="progress"><div id="c-progress" class="progress-bar" style="width:0%"></div></div>
+<div id="c-reward" style="display:none;background:#22c55e11;border:1px solid #22c55e55;color:#22c55e;padding:12px;border-radius:12px;margin-top:10px;font-weight:800">¡50% OFF disponible!</div>
+</div>
+<p id="c-last" style="color:#666;font-size:11px;text-align:center"></p>
+<div id="status-msg" class="msg"></div>
+<button id="btn-corte" class="btn" style="margin-bottom:10px">✂️ HE VENIDO A CORTARME (+10 PTS)</button>
+<div id="corte-hint" class="small-hint"></div>
+<button id="btn-resena" class="btn btn-white" style="margin-top:6px">⭐ DEJÉ RESEÑA EN GOOGLE (+20 PTS)</button>
+<div id="resena-hint" class="small-hint"></div>
+<p style="color:#666;font-size:11px;text-align:center;margin-top:10px">Queda ENVIADO y bloqueado 7 días. Solo 1 por semana.</p>
+<button onclick="resetLocal()" style="background:none;border:0;color:#444;font-size:11px;margin-top:14px;width:100%">Cambiar móvil</button>
+</div>
+<script>
+const SUPABASE_URL="https://sxpczzosxyuishwrwytv.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4cGN6em9zeHl1aXNod3J3eXR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0NTMyOTcsImV4cCI6MjEwNjAyOTI5N30.X9dFdEsLwem85GpdYEMkeGItPFtkrfyWG3uHXwfgfJI";
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+function showMsg(id,text,type){const el=document.getElementById(id);el.className='msg '+type;el.innerText=text;el.style.display='block';if(type!=='err')setTimeout(()=>{el.style.display='none';},6000);}
+async function load(){
+  const mob=localStorage.getItem('barberbox_mobile');
+  const nam=localStorage.getItem('barberbox_name');
+  if(!mob){document.getElementById('not-registered').style.display='block';document.getElementById('registered').style.display='none';return;}
+  document.getElementById('not-registered').style.display='none';
+  document.getElementById('registered').style.display='block';
+  document.getElementById('c-hello').innerText=nam?'Hola, '+nam:'Hola';
+  try{
+    const {data,error}=await sb.from('clients').select('*').eq('mobile',mob).maybeSingle();
+    if(error)throw error;
+    if(data){
+      const pct=Math.min(100,Math.round((data.points/200)*100));
+      document.getElementById('c-hello').innerText='Hola, '+data.name;
+      document.getElementById('c-points').innerText=data.points;
+      document.getElementById('c-progress').style.width=pct+'%';
+      document.getElementById('c-last').innerText='Última visita: '+new Date(data.last_visit).toLocaleString('es-ES');
+      document.getElementById('c-reward').style.display=data.points>=200?'block':'none';
+      localStorage.setItem('barberbox_name',data.name);
+    }
+    await actualizarLimites();
+  }catch(e){showMsg('status-msg','Error: '+e.message,'err');}
 }
-
-function Owner(){
- const [pin,setPin]=useState("");const [auth,setAuth]=useState(localStorage.getItem(KEYS.pin)==="1989");const [clients,setClients]=useState(getClients());const [pending,setPending]=useState(getPending());const [msg,setMsg]=useState(null);
- useEffect(()=>{let id=setInterval(()=>{setClients(getClients());setPending(getPending())},2000);return()=>clearInterval(id)},[]);
- const login=(e)=>{e.preventDefault();if(pin==="1989"){localStorage.setItem(KEYS.pin,"1989");setAuth(true)}else{setMsg("PIN incorrecto");setTimeout(()=>setMsg(null),2000)}};
- const approve=(req)=>{let all=getClients();if(req.type==="canje"){all=all.map(c=>c.id===req.clientId?{...c,points:Math.max(0,c.points-200)}:c)}else{let ex=all.find(c=>c.id===req.clientId);if(ex)all=all.map(c=>c.id===req.clientId?{...c,points:c.points+req.points}:c);else all=[{id:req.clientId,name:req.name,mobile:req.mobile,points:req.points},...all]}saveClients(all);savePending(getPending().filter(p=>p.id!==req.id));setClients(all);setPending(getPending().filter(p=>p.id!==req.id))};
- const reject=(req)=>{savePending(getPending().filter(p=>p.id!==req.id));setPending(getPending().filter(p=>p.id!==req.id))};
- if(!auth)return React.createElement("div",{className:"min-h-screen bg-[#F5F3EF] flex flex-col items-center pt-20"},React.createElement("form",{onSubmit:login,className:"bg-white p-6 rounded-xl"},React.createElement("input",{value:pin,onChange:e=>setPin(e.target.value),placeholder:"PIN 1989",type:"password",className:"h-[52px] w-full bg-[#F5F3EF] rounded-xl px-4 text-center"}),React.createElement("button",{className:"mt-4 w-full h-[48px] bg-black text-white rounded-full"},"ENTRAR")),msg&&React.createElement("div",{className:"mt-4"},msg));
- return React.createElement("div",{className:"min-h-screen bg-[#F5F3EF] p-6"},
-  React.createElement("div",{className:"max-w-[600px] mx-auto"},
-   React.createElement("h1",{className:"font-bold text-[20px]"},"BARBERBOX DUEÑO - "+clients.length+" clientes"),
-   React.createElement("div",{className:"mt-6"},pending.length===0?React.createElement("div",{className:"text-black/40"},"Sin solicitudes"):pending.map(p=>React.createElement("div",{key:p.id,className:"bg-white p-4 rounded-xl mb-3 flex justify-between"},React.createElement("div",null,p.name+" "+p.type+" "+p.points),React.createElement("div",{className:"flex gap-2"},React.createElement("button",{onClick:()=>reject(p),className:"px-3 h-8 bg-gray-100 rounded-full"},"No"),React.createElement("button",{onClick:()=>approve(p),className:"px-4 h-8 bg-black text-white rounded-full"},"Aprobar"))))),
-   React.createElement("div",{className:"mt-8 bg-white rounded-xl divide-y"},clients.map(c=>React.createElement("div",{key:c.id,className:"p-4 flex justify-between"},React.createElement("div",null,c.name+" - "+c.mobile),React.createElement("div",{className:"font-bold"},c.points))))
-  )
- );
+async function actualizarLimites(){
+  const mobile=localStorage.getItem('barberbox_mobile');
+  if(!mobile)return;
+  const oneWeekAgo=new Date(Date.now()-7*24*60*60*1000).toISOString();
+  const lastCorteLocal=localStorage.getItem('barberbox_last_corte');
+  const lastResenaLocal=localStorage.getItem('barberbox_last_resena');
+  let bloqueoCorteLocal=false, bloqueoResenaLocal=false;
+  if(lastCorteLocal && (Date.now()-parseInt(lastCorteLocal)) < 7*24*60*60*1000) bloqueoCorteLocal=true;
+  if(lastResenaLocal && (Date.now()-parseInt(lastResenaLocal)) < 7*24*60*60*1000) bloqueoResenaLocal=true;
+  try{
+    const {data:cortes}=await sb.from('pending_requests').select('*').eq('mobile',mobile).eq('type','corte 10pts').gte('created_at',oneWeekAgo).limit(1);
+    const {data:resenas}=await sb.from('pending_requests').select('*').eq('mobile',mobile).eq('type','resena Google 20pts').gte('created_at',oneWeekAgo).limit(1);
+    const btnCorte=document.getElementById('btn-corte');
+    const btnResena=document.getElementById('btn-resena');
+    if((cortes && cortes.length>0) || bloqueoCorteLocal){
+      const fecha=cortes && cortes.length>0 ? new Date(cortes[0].created_at) : new Date(parseInt(lastCorteLocal));
+      const disponible=new Date(fecha.getTime()+7*24*60*60*1000);
+      btnCorte.disabled=true;
+      btnCorte.innerText='✔️ ENVIADO (+10) - Bloqueado 7 días';
+      document.getElementById('corte-hint').innerText='Enviado '+fecha.toLocaleDateString('es-ES')+' · Disponible '+disponible.toLocaleDateString('es-ES');
+    }else{
+      btnCorte.disabled=false;
+      btnCorte.innerText='✂️ HE VENIDO A CORTARME (+10 PTS)';
+      document.getElementById('corte-hint').innerText='Puedes solicitar 1 corte cada 7 días';
+    }
+    if((resenas && resenas.length>0) || bloqueoResenaLocal){
+      const fecha=resenas && resenas.length>0 ? new Date(resenas[0].created_at) : new Date(parseInt(lastResenaLocal));
+      const disponible=new Date(fecha.getTime()+7*24*60*60*1000);
+      btnResena.disabled=true;
+      btnResena.innerText='✔️ ENVIADO (+20) - Bloqueado 7 días';
+      document.getElementById('resena-hint').innerText='Enviado '+fecha.toLocaleDateString('es-ES')+' · Disponible '+disponible.toLocaleDateString('es-ES');
+    }else{
+      btnResena.disabled=false;
+      btnResena.innerText='⭐ DEJÉ RESEÑA EN GOOGLE (+20 PTS)';
+      document.getElementById('resena-hint').innerText='Puedes solicitar 1 reseña cada 7 días';
+    }
+  }catch(e){
+    console.log(e);
+    if(bloqueoCorteLocal){document.getElementById('btn-corte').disabled=true;document.getElementById('btn-corte').innerText='✔️ ENVIADO - Bloqueado 7 días';}
+    if(bloqueoResenaLocal){document.getElementById('btn-resena').disabled=true;document.getElementById('btn-resena').innerText='✔️ ENVIADO - Bloqueado 7 días';}
+  }
 }
-
-function Root(){
- const [hash,setHash]=useState(window.location.hash);
- useEffect(()=>{let h=()=>setHash(window.location.hash);window.addEventListener("hashchange",h);return()=>window.removeEventListener("hashchange",h)},[]);
- return hash==="#owner"?React.createElement(Owner):React.createElement(Client);
+async function registrar(){
+  const name=document.getElementById('c-name').value.trim();
+  const mobile=document.getElementById('c-mobile').value.trim();
+  const btn=document.getElementById('btn-reg');
+  if(!name||!mobile){showMsg('reg-msg','Falta nombre o móvil','err');return;}
+  btn.disabled=true;const old=btn.innerText;btn.innerText='Registrando...';
+  try{
+    const {data:ex,error:e1}=await sb.from('clients').select('*').eq('mobile',mobile).maybeSingle();
+    if(e1)throw e1;
+    if(ex){localStorage.setItem('barberbox_mobile',mobile);localStorage.setItem('barberbox_name',ex.name);showMsg('reg-msg','¡Ya estabas registrado! Entrando...','ok');setTimeout(load,600);return;}
+    const {error}=await sb.from('clients').insert({name,mobile,points:0});
+    if(error)throw error;
+    try{await sb.from('pending_requests').insert({mobile,name,type:'registro',status:'pendiente'});}catch(_){}
+    localStorage.setItem('barberbox_mobile',mobile);
+    localStorage.setItem('barberbox_name',name);
+    showMsg('reg-msg','¡Registrado! Ahora entras directo con NFC','ok');
+    setTimeout(load,600);
+  }catch(err){showMsg('reg-msg','Error: '+err.message,'err');}finally{btn.disabled=false;btn.innerText=old;}
 }
-createRoot(document.getElementById("root")).render(React.createElement(Root));
+async function avisar(tipo, puntos){
+  const mobile=localStorage.getItem('barberbox_mobile');
+  const name=localStorage.getItem('barberbox_name')||'Cliente';
+  if(!mobile){showMsg('status-msg','No hay móvil guardado','err');return;}
+  const oneWeekAgo=new Date(Date.now()-7*24*60*60*1000).toISOString();
+  const lastKey=tipo.includes('corte')?'barberbox_last_corte':'barberbox_last_resena';
+  const lastLocal=localStorage.getItem(lastKey);
+  if(lastLocal && (Date.now()-parseInt(lastLocal)) < 7*24*60*60*1000){
+    const disponible=new Date(parseInt(lastLocal)+7*24*60*60*1000);
+    showMsg('status-msg','Ya solicitaste '+tipo+' - Disponible el '+disponible.toLocaleDateString('es-ES'),'warn');
+    await actualizarLimites();return;
+  }
+  try{
+    const {data:recientes}=await sb.from('pending_requests').select('*').eq('mobile',mobile).eq('type',tipo).gte('created_at',oneWeekAgo).limit(1);
+    if(recientes && recientes.length>0){
+      const disponible=new Date(new Date(recientes[0].created_at).getTime()+7*24*60*60*1000);
+      showMsg('status-msg','Ya solicitaste '+tipo+' - Disponible el '+disponible.toLocaleDateString('es-ES'),'warn');
+      localStorage.setItem(lastKey, new Date(recientes[0].created_at).getTime().toString());
+      await actualizarLimites();return;
+    }
+  }catch(e){console.log(e);}
+  const btnId=tipo.includes('corte')?'btn-corte':'btn-resena';
+  const btn=document.getElementById(btnId);
+  btn.disabled=true;btn.innerText='Enviando...';
+  try{
+    const {error}=await sb.from('pending_requests').insert({mobile,name,type:tipo,status:'pendiente'});
+    if(error)throw error;
+    localStorage.setItem(lastKey, Date.now().toString());
+    btn.innerText='✔️ ENVIADO (+'+puntos+') - Bloqueado 7 días';
+    showMsg('status-msg','¡Enviado! Bloqueado 7 días hasta que el dueño lo acepte','ok');
+    await actualizarLimites();
+  }catch(err){showMsg('status-msg','Error: '+err.message,'err');btn.disabled=false;}
+}
+function avisarCorte(){return avisar('corte 10pts',10);}
+function avisarResena(){return avisar('resena Google 20pts',20);}
+function resetLocal(){if(confirm('¿Borrar móvil?')){localStorage.removeItem('barberbox_mobile');localStorage.removeItem('barberbox_name');localStorage.removeItem('barberbox_last_corte');localStorage.removeItem('barberbox_last_resena');location.reload();}}
+document.getElementById('btn-reg').addEventListener('click',registrar);
+document.getElementById('btn-corte').addEventListener('click',avisarCorte);
+document.getElementById('btn-resena').addEventListener('click',avisarResena);
+document.getElementById('c-mobile').addEventListener('keydown',e=>{if(e.key==='Enter')registrar();});
+load();
 </script></body></html>
