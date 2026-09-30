@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Barberbox | DUEÑO PERFECTO</title>
+<title>Barberbox | DUEÑO FINAL</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>*{box-sizing:border-box}body{margin:0;background:#0a0a0a;color:#fff;font-family:system-ui;overflow-x:hidden}
 .header{padding:14px 16px;border-bottom:1px solid #222;display:flex;justify-content:space-between;align-items:center;background:#0a0a0a;position:sticky;top:0;z-index:10}
@@ -9,282 +9,42 @@
 .card{background:#151515;border:1px solid #222;border-radius:16px;padding:14px;margin-bottom:12px;overflow:hidden}
 input{width:100%;background:#0f0f0f;border:1px solid #2a2a2a;color:#fff;padding:12px;border-radius:10px;margin-bottom:8px;font-size:14px}
 .btn{padding:10px 14px;border-radius:8px;border:0;font-weight:800;cursor:pointer}
-.btn-gold{background:#f5c542;color:#000}.btn-white{background:#fff;color:#000}.btn-green{background:#22c55e;color:#000}.btn-red{background:#ef4444;color:#fff}
-.client{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 0;border-bottom:1px solid #1e1e1e}
+.btn-gold{background:#f5c542;color:#000}.btn-white{background:#fff;color:#000}.btn-green{background:#22c55e;color:#000}
+.client{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 0;border-bottom:1px solid #1e1e1e;transition:all .3s}
 .client.top{background:#f5c5420a;border:1px solid #f5c54222;border-radius:12px;padding:12px;margin-bottom:6px}
-.client.deleted{opacity:0.3}
+.client.deleting{opacity:0.2;transform:scale(0.95)}
 .progress{height:6px;background:#222;border-radius:10px;overflow:hidden;margin:4px 0}.progress-bar{height:100%;background:#f5c542;transition:width .3s}
 #login{max-width:380px;margin:80px auto;padding:20px}
 .msg{padding:12px;border-radius:10px;margin:10px 0;text-align:center;font-size:12px;display:none;word-break:break-word}
 .msg.ok{display:block;background:#22c55e11;border:1px solid #22c55e55;color:#22c55e}
 .msg.err{display:block;background:#ef444411;border:1px solid #ef444455;color:#ef4444}
 .msg.warn{display:block;background:#f5c54211;border:1px solid #f5c54255;color:#f5c542}
-table{width:100%;border-collapse:collapse} th{color:#666;font-size:10px;text-align:left;padding:6px} td{padding:6px}
-.codebox{background:#0f0f0f;border:1px solid #333;border-radius:8px;padding:10px;font-family:monospace;font-size:11px;color:#f5c542;margin:8px 0;white-space:pre-wrap;user-select:all}
+.codebox{background:#0f0f0f;border:1px solid #f5c54244;border-radius:8px;padding:12px;font-family:monospace;font-size:12px;color:#f5c542;margin:8px 0;white-space:pre-wrap;user-select:all}
 </style></head><body>
-<div id="login" class="card">
-<h3 style="color:#f5c542;margin:0 0 10px">ÁREA DUEÑO - BARBERBOX</h3>
-<p style="color:#888;font-size:13px">Clave 1999</p>
-<input id="pass" type="password" placeholder="••••">
-<button class="btn btn-gold" style="width:100%;padding:14px" onclick="checkPass()">ENTRAR</button>
-<div id="login-msg" class="msg"></div>
-</div>
-<div id="app" style="display:none">
-<div class="header">
-<div><b>💈 BARBERBOX DUEÑO</b></div>
-<div style="display:flex;gap:8px;align-items:center">
-<div id="count-top" class="badge gold">0 clientes</div>
-<div id="status" class="badge">Cargando...</div>
-<button onclick="logoutDueno()" style="background:none;border:0;color:#666;font-size:11px">Salir</button>
-</div>
-</div>
-<div class="wrap">
-
-<div id="rls-alert" class="card" style="display:none;border-color:#f5c542;background:#f5c54211">
-<h3 style="color:#f5c542;margin:0 0 6px;font-size:13px">⚠️ Si la X o CANJEAR falla, haz esto 1 vez en Supabase:</h3>
-<p style="color:#aaa;font-size:12px;margin:0 0 6px">Supabase > SQL Editor > New query > pega y RUN:</p>
-<div class="codebox" onclick="navigator.clipboard.writeText(this.innerText);alert('Copiado! Pégalo en Supabase SQL Editor')">alter table clients disable row level security;
-alter table pending_requests disable row level security;</div>
-<small style="color:#888">Toca el cuadro para copiar. Con eso ya funciona para siempre.</small>
-</div>
-
-<div class="card"><h3 style="margin:0 0 10px;color:#f5c542;font-size:13px">🔔 SOLICITUDES POR ACEPTAR</h3>
-<div id="pending-list"></div>
-<div id="pending-msg" class="msg"></div>
-</div>
-
-<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-<h3 style="margin:0;color:#888;font-size:11px">CLIENTES - MAYOR A MENOR (200=50% OFF)</h3>
-<input id="q" placeholder="Buscar" oninput="filterList()" style="max-width:120px;padding:8px;font-size:12px">
-</div>
-<div id="list"></div>
-</div>
-
-<div class="card">
-<h3 style="margin:0 0 10px;color:#888;font-size:11px">➕ AGREGAR MANUAL</h3>
-<table><tr><th>Nombre</th><th>Móvil</th><th>Pts</th><th></th></tr>
-<tr>
-<td><input id="name" placeholder="Nombre" style="margin:0"></td>
-<td><input id="mobile" placeholder="Móvil" style="margin:0"></td>
-<td><input id="points" type="number" value="10" style="margin:0;width:70px"></td>
-<td><button class="btn btn-gold" onclick="addClient()" style="width:100%">GUARDAR</button></td>
-</tr>
-</table>
-<div id="manual-msg" class="msg"></div>
-</div>
-
-<div id="del-msg" class="msg"></div>
-</div>
-</div>
+<div id="login" class="card"><h3 style="color:#f5c542;margin:0 0 10px">ÁREA DUEÑO - BARBERBOX</h3><p style="color:#888;font-size:13px">Clave 1999</p><input id="pass" type="password" placeholder="••••"><button class="btn btn-gold" style="width:100%;padding:14px" onclick="checkPass()">ENTRAR</button><div id="login-msg" class="msg"></div></div>
+<div id="app" style="display:none"><div class="header"><div><b>💈 BARBERBOX DUEÑO</b></div><div style="display:flex;gap:8px;align-items:center"><div id="count-top" class="badge gold">0 clientes</div><div id="status" class="badge">Cargando...</div><button onclick="logoutDueno()" style="background:none;border:0;color:#666;font-size:11px">Salir</button></div></div><div class="wrap">
+<div id="rls-alert" class="card" style="display:none;border-color:#f5c542;background:#f5c54211"><h3 style="color:#f5c542;margin:0 0 6px;font-size:13px">🔧 Si aún falla, ejecuta en Supabase SQL Editor y RUN:</h3><div class="codebox" id="sql-code">alter table public.clients disable row level security; alter table public.pending_requests disable row level security; drop policy if exists "Allow all" on public.clients; create policy "Allow all" on public.clients for all to anon using (true) with check (true); drop policy if exists "Allow all" on public.pending_requests; create policy "Allow all" on public.pending_requests for all to anon using (true) with check (true);</div><button class="btn btn-gold" style="padding:6px 10px;font-size:11px;margin-top:6px" onclick="navigator.clipboard.writeText(document.getElementById('sql-code').innerText);alert('¡Copiado!')">📋 COPIAR SQL</button></div>
+<div class="card"><h3 style="margin:0 0 10px;color:#f5c542;font-size:13px">🔔 SOLICITUDES POR ACEPTAR</h3><div id="pending-list"></div><div id="pending-msg" class="msg"></div></div>
+<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div><h3 style="margin:0;color:#888;font-size:11px">CLIENTES - MAYOR A MENOR (200=50% OFF)</h3><small style="color:#555">X = borrar | CANJEAR = reset a 0 | TEST 200 = probar</small></div><input id="q" placeholder="Buscar" oninput="filterList()" style="max-width:100px;padding:8px;font-size:12px"></div><div id="list"></div></div>
+<div class="card"><h3 style="margin:0 0 10px;color:#888;font-size:11px">➕ AGREGAR MANUAL</h3><table><tr><th>Nombre</th><th>Móvil</th><th>Pts</th><th></th></tr><tr><td><input id="name" placeholder="Nombre" style="margin:0"></td><td><input id="mobile" placeholder="Móvil" style="margin:0"></td><td><input id="points" type="number" value="10" style="margin:0;width:70px"></td><td><button class="btn btn-gold" onclick="addClient()" style="width:100%">GUARDAR</button></td></tr></table><div id="manual-msg" class="msg"></div></div>
+<div id="del-msg" class="msg"></div><div id="debug-msg" class="msg" style="display:none;font-size:10px;text-align:left"></div>
+</div></div>
 <script>
-const CLAVE_DUENO="1999";
-const SUPABASE_URL="https://sxpczzosxyuishwrwytv.supabase.co";
-const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4cGN6em9zeHl1aXNod3J3eXR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0NTMyOTcsImV4cCI6MjEwNjAyOTI5N30.X9dFdEsLwem85GpdYEMkeGItPFtkrfyWG3uHXwfgfJI";
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-let all=[];
-
-function checkPass(){
-  const p=document.getElementById('pass').value.trim();
-  if(p===CLAVE_DUENO){
-    localStorage.setItem('barberbox_dueno_ok','1');
-    document.getElementById('login').style.display='none';
-    document.getElementById('app').style.display='block';
-    loadOwner();
-  }else{
-    const m=document.getElementById('login-msg');
-    m.style.display='block';m.className='msg err';m.innerText='Clave incorrecta';
-  }
-}
+const CLAVE_DUENO="1999"; const SUPABASE_URL="https://sxpczzosxyuishwrwytv.supabase.co"; const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4cGN6em9zeHl1aXNod3J3eXR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0NTMyOTcsImV4cCI6MjEwNjAyOTI5N30.X9dFdEsLwem85GpdYEMkeGItPFtkrfyWG3uHXwfgfJI"; const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY); let all=[];
+function checkPass(){ const p=document.getElementById('pass').value.trim(); if(p===CLAVE_DUENO){ localStorage.setItem('barberbox_dueno_ok','1'); document.getElementById('login').style.display='none'; document.getElementById('app').style.display='block'; loadOwner(); }else{ const m=document.getElementById('login-msg'); m.style.display='block';m.className='msg err';m.innerText='Clave incorrecta'; } }
 function logoutDueno(){ if(confirm('¿Salir?')){localStorage.removeItem('barberbox_dueno_ok');location.reload();} }
-
 async function loadOwner(){
-  const {data,error}=await sb.from('clients').select('*').order('points',{ascending:false}).limit(500);
-  if(error){
-    document.getElementById('status').innerText=error.message;
-    document.getElementById('status').className='badge err';
-    document.getElementById('list').innerHTML='<small style="color:#ff4444">'+error.message+'</small>';
-    if(error.message.toLowerCase().includes('security')||error.message.toLowerCase().includes('policy')) document.getElementById('rls-alert').style.display='block';
-    return;
-  }
-  all=data||[];
-  // Filtra borrados suaves
-  const visibles=all.filter(c=>!c.name.startsWith('[BORRADO]'));
-  document.getElementById('count-top').innerText=visibles.length+' clientes';
-  document.getElementById('status').innerText='Conectado ✓ '+visibles.length;
-  document.getElementById('status').className='badge ok';
-  render(visibles);
-
-  const {data:pend,error:e2}=await sb.from('pending_requests').select('*').eq('status','pendiente').order('created_at',{ascending:false}).limit(100);
-  if(e2){ document.getElementById('pending-list').innerHTML='<small style="color:#ff4444">'+e2.message+'</small>'; return; }
-  const pendientes=pend||[];
-  document.getElementById('pending-list').innerHTML=pendientes.length?pendientes.map(p=>{
-    const pts=p.type.includes('10')?10:p.type.includes('20')?20:0;
-    const fecha=new Date(p.created_at);
-    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #1e1e1e">
-      <div><b>${p.name}</b> <small style="color:#666">${p.mobile}</small><br>
-      <small style="color:#f5c542">+${pts} pts - ${p.type}</small><br>
-      <small style="color:#555">${fecha.toLocaleString('es-ES')}</small></div>
-      <div style="display:flex;gap:6px">
-        <button onclick="aprobarYsumar('${p.id}','${p.mobile}',${pts})" style="background:#22c55e;color:#000;border:0;padding:10px 14px;border-radius:10px;font-weight:900">✓ +${pts}</button>
-        <button onclick="rechazarReq('${p.id}')" style="background:#1a1a1a;color:#ef4444;border:1px solid #333;padding:10px 14px;border-radius:10px">X</button>
-      </div>
-    </div>`
-  }).join(''):'<small style="color:#666">Sin solicitudes</small>';
+  try{ const {data,error}=await sb.from('clients').select('*').order('points',{ascending:false}).limit(500); if(error) throw error; all=data||[]; const visibles=all.filter(c=>!c.name.startsWith('[BORRADO]') && !c.mobile.startsWith('deleted_')); document.getElementById('count-top').innerText=visibles.length+' clientes'; document.getElementById('status').innerText='Conectado ✓ '+visibles.length; document.getElementById('status').className='badge ok'; render(visibles); }catch(e){ document.getElementById('status').innerText='Error: '+e.message; document.getElementById('status').className='badge err'; document.getElementById('list').innerHTML='<small style="color:#ff4444">Error: '+e.message+'</small>'; document.getElementById('rls-alert').style.display='block'; document.getElementById('debug-msg').style.display='block'; document.getElementById('debug-msg').innerText='DEBUG load: '+e.message; }
+  try{ const {data:pend,error:e2}=await sb.from('pending_requests').select('*').eq('status','pendiente').order('created_at',{ascending:false}).limit(100); if(e2) throw e2; const pendientes=pend||[]; document.getElementById('pending-list').innerHTML=pendientes.length?pendientes.map(p=>{ const pts=p.type.includes('10')?10:p.type.includes('20')?20:0; const fecha=new Date(p.created_at); return `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #1e1e1e"><div><b>${p.name}</b> <small style="color:#666">${p.mobile}</small><br><small style="color:#f5c542">+${pts} pts - ${p.type}</small><br><small style="color:#555">${fecha.toLocaleString('es-ES')}</small></div><div style="display:flex;gap:6px"><button onclick="aprobarYsumar('${p.id}','${p.mobile}',${pts})" style="background:#22c55e;color:#000;border:0;padding:10px 14px;border-radius:10px;font-weight:900">✓ +${pts}</button><button onclick="rechazarReq('${p.id}')" style="background:#1a1a1a;color:#ef4444;border:1px solid #333;padding:10px 14px;border-radius:10px">X</button></div></div>`}).join(''):'<small style="color:#666">Sin solicitudes</small>'; }catch(e){ document.getElementById('pending-list').innerHTML='<small style="color:#ff4444">Error solicitudes: '+e.message+'</small>'; }
 }
-
-function render(arr){
-  if(!arr.length){ document.getElementById('list').innerHTML='<small style="color:#666">Sin clientes</small>'; return; }
-  document.getElementById('list').innerHTML=arr.map((c,i)=>{
-    const pct=Math.min(100,Math.round((c.points/200)*100));
-    const isTop=c.points>=200;
-    return `<div class="client ${isTop?'top':''}">
-      <div style="min-width:0;flex:1">
-        <div style="display:flex;gap:6px;align-items:center"><span style="color:#666;font-size:11px">#${i+1}</span><b>${c.name}</b> <small style="color:#666">${c.mobile}</small>${isTop?'<span style="background:#22c55e;color:#000;font-size:9px;padding:2px 6px;border-radius:10px;font-weight:800">50% OFF</span>':''}</div>
-        <div class="progress"><div class="progress-bar" style="width:${pct}%;background:${isTop?'#22c55e':'#f5c542'}"></div></div>
-        <small style="color:${isTop?'#22c55e':'#888'}">${c.points}/200 pts ${isTop?' - TOPE - CANJEAR' : ''}</small>
-      </div>
-      <div style="display:flex;gap:4px;align-items:center">
-        ${isTop?`<button onclick="canjear('${c.id}')" id="btn-canjear-${c.id}" class="btn btn-green" style="padding:10px 12px">CANJEAR 0</button>`:`<button onclick="addPoints('${c.id}',10)" class="btn btn-gold" style="padding:6px 8px">+10</button><button onclick="addPoints('${c.id}',20)" class="btn btn-white" style="padding:6px 8px">+20</button>`}
-        <button onclick="delClient('${c.id}')" id="btn-del-${c.id}" style="background:#1f1f1f;color:#ff4444;border:1px solid #333;padding:8px 10px;border-radius:8px;font-weight:800">X</button>
-      </div>
-    </div>`
-  }).join('');
-}
-function filterList(){ const q=document.getElementById('q').value.toLowerCase(); if(!q) render(all.filter(c=>!c.name.startsWith('[BORRADO]'))); else render(all.filter(c=>!c.name.startsWith('[BORRADO]')&&(c.name.toLowerCase().includes(q)||c.mobile.includes(q)))); }
-
-async function addClient(){
-  const name=document.getElementById('name').value.trim(),mobile=document.getElementById('mobile').value.trim(); let points=parseInt(document.getElementById('points').value)||10; points=Math.min(200,Math.max(0,points));
-  const msg=document.getElementById('manual-msg');
-  if(!name||!mobile){msg.style.display='block';msg.className='msg err';msg.innerText='Falta nombre o móvil';return;}
-  msg.style.display='block';msg.className='msg ok';msg.innerText='Guardando...';
-  try{
-    const {data:ex}=await sb.from('clients').select('*').eq('mobile',mobile).maybeSingle();
-    if(ex){
-      if(ex.points>=200){msg.className='msg warn';msg.innerText='Ya tiene 200 - usa CANJEAR';return;}
-      const nuevo=Math.min(200,ex.points+points);
-      const {error}=await sb.from('clients').update({name,points:nuevo,last_visit:new Date().toISOString()}).eq('id',ex.id);
-      if(error) throw error;
-      msg.innerText='Actualizado a '+nuevo+' ✓';
-    }else{
-      const {error}=await sb.from('clients').insert({name,mobile,points});
-      if(error) throw error;
-      msg.innerText='Guardado ✓';
-    }
-    document.getElementById('name').value='';document.getElementById('mobile').value='';
-    loadOwner(); setTimeout(()=>msg.style.display='none',2000);
-  }catch(e){msg.className='msg err';msg.innerText='Error: '+e.message; document.getElementById('rls-alert').style.display='block';}
-}
-
-async function addPoints(id,pts){
-  const cli=all.find(c=>c.id===id); if(!cli) return;
-  if(cli.points>=200){alert('Ya tiene 200 - usa CANJEAR');return;}
-  const nuevo=Math.min(200,cli.points+pts);
-  const {error}=await sb.from('clients').update({points:nuevo,last_visit:new Date().toISOString()}).eq('id',id);
-  if(error){alert('Error: '+error.message); document.getElementById('rls-alert').style.display='block'; return;}
-  loadOwner();
-}
-
-// FIX CANJEAR - REINICIA A 0 PERFECTO CON FALLBACK
-async function canjear(id){
-  const cli=all.find(c=>c.id===id); if(!cli) return;
-  if(!confirm('¿'+cli.name+' canjeó 50% OFF?\nSe pondrá a 0 pts.')) return;
-  const btn=document.getElementById('btn-canjear-'+id);
-  const msg=document.getElementById('del-msg');
-  if(btn){btn.innerText='Canjeando...';btn.disabled=true;}
-  msg.style.display='block';msg.className='msg ok';msg.innerText='Canjeando a '+cli.name+'...';
-  try{
-    // Intento 1: update normal
-    let {data,error}=await sb.from('clients').update({points:0,last_visit:new Date().toISOString()}).eq('id',id).select();
-    if(error) throw error;
-    if(!data||data.length===0){
-      // Intento 2: sin last_visit por si columna bloqueada
-      const r2=await sb.from('clients').update({points:0}).eq('id',id).select();
-      if(r2.error) throw r2.error;
-      data=r2.data;
-      if(!data||data.length===0) throw new Error('RLS bloquea UPDATE - ejecuta SQL de arriba');
-    }
-    // Limpia solicitudes del cliente
-    await sb.from('pending_requests').delete().eq('mobile',cli.mobile);
-    msg.innerText='✓ ¡'+cli.name+' canjeado! Ahora 0 pts - vuelve a empezar';
-    loadOwner();
-    setTimeout(()=>msg.style.display='none',3000);
-  }catch(e){
-    console.error('canjear error',e);
-    // FALLBACK: si no puede actualizar por RLS, intenta borrar y recrear con 0
-    try{
-      msg.innerText='Intento 1 falló, probando recrear cliente...';
-      const mobileTemp=cli.mobile;
-      const nameTemp=cli.name;
-      // Intenta borrar
-      await sb.from('clients').delete().eq('id',id);
-      // Crea de nuevo con 0
-      await sb.from('clients').insert({name:nameTemp,mobile:mobileTemp,points:0});
-      msg.className='msg ok';
-      msg.innerText='✓ ¡Canjeado por recreación! '+nameTemp+' ahora 0 pts';
-      loadOwner();
-    }catch(e2){
-      msg.className='msg err';
-      msg.innerText='Error CANJEAR: '+e.message+' | '+e2.message;
-      document.getElementById('rls-alert').style.display='block';
-      if(btn){btn.innerText='CANJEAR 0';btn.disabled=false;}
-    }
-  }
-}
-
-// FIX X - BORRA PERFECTO CON FALLBACK SUAVE
-async function delClient(id){
-  const cli=all.find(c=>c.id===id); if(!cli) return;
-  if(!confirm('¿Borrar a '+cli.name+' ('+cli.mobile+') DEFINITIVAMENTE?')) return;
-  const btn=document.getElementById('btn-del-'+id);
-  const msg=document.getElementById('del-msg');
-  if(btn){btn.innerText='...';btn.disabled=true;}
-  msg.style.display='block';msg.className='msg ok';msg.innerText='Borrando a '+cli.name+'...';
-  try{
-    // 1. Borra solicitudes
-    await sb.from('pending_requests').delete().eq('mobile',cli.mobile);
-    // 2. Intenta borrado duro
-    let {data,error}=await sb.from('clients').delete().eq('id',id).select();
-    if(error) throw error;
-    if(!data||data.length===0){
-      // FALLBACK SUAVE: si RLS bloquea DELETE, lo marcamos como borrado y 0 pts
-      console.warn('Delete bloqueado por RLS, haciendo soft delete');
-      const r2=await sb.from('clients').update({name:'[BORRADO] '+cli.name,points:0,mobile:'deleted_'+Date.now()+'_'+cli.mobile}).eq('id',id).select();
-      if(r2.error) throw r2.error;
-      msg.innerText='✓ Cliente ocultado (soft delete) - Ejecuta SQL de arriba para borrado total';
-    }else{
-      msg.innerText='✓ Cliente '+cli.name+' borrado definitivamente';
-    }
-    loadOwner();
-    setTimeout(()=>msg.style.display='none',2500);
-  }catch(e){
-    console.error('del error',e);
-    msg.className='msg err';
-    msg.innerText='Error X: '+e.message+' - Intentando ocultarlo...';
-    // Último intento: soft delete
-    try{
-      await sb.from('clients').update({name:'[BORRADO] '+cli.name,points:0}).eq('id',id);
-      msg.className='msg ok';
-      msg.innerText='✓ Cliente ocultado (no borrado total por RLS). Ejecuta SQL arriba.';
-      loadOwner();
-    }catch(e2){
-      msg.innerText='Error final: '+e.message;
-      document.getElementById('rls-alert').style.display='block';
-    }
-    if(btn){btn.innerText='X';btn.disabled=false;}
-  }
-}
-
-async function aprobarYsumar(reqId,mobile,pts){
-  const {data:cli}=await sb.from('clients').select('*').eq('mobile',mobile).maybeSingle();
-  if(!cli){alert('Cliente no encontrado');return;}
-  if(cli.points>=200){alert('Ya tiene 200 - usa CANJEAR'); return;}
-  const nuevo=Math.min(200,cli.points+pts);
-  const {error}=await sb.from('clients').update({points:nuevo,last_visit:new Date().toISOString()}).eq('id',cli.id);
-  if(error){alert('Error: '+error.message); document.getElementById('rls-alert').style.display='block'; return;}
-  await sb.from('pending_requests').update({status:'verificado'}).eq('id',reqId);
-  loadOwner();
-}
+function render(arr){ if(!arr.length){ document.getElementById('list').innerHTML='<small style="color:#666">Sin clientes - agrega uno</small>'; return; } document.getElementById('list').innerHTML=arr.map((c,i)=>{ const pct=Math.min(100,Math.round((c.points/200)*100)); const isTop=c.points>=200; return `<div class="client ${isTop?'top':''}" id="row-${c.id}"><div style="min-width:0;flex:1"><div style="display:flex;gap:6px;align-items:center"><span style="color:#666;font-size:11px">#${i+1}</span><b>${c.name}</b> <small style="color:#666">${c.mobile}</small>${isTop?'<span style="background:#22c55e;color:#000;font-size:9px;padding:2px 6px;border-radius:10px;font-weight:800">50% OFF</span>':''}</div><div class="progress"><div class="progress-bar" style="width:${pct}%;background:${isTop?'#22c55e':'#f5c542'}"></div></div><small style="color:${isTop?'#22c55e':'#888'}">${c.points}/200 pts ${isTop?' - LISTO PARA CANJEAR' : ''}</small></div><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:flex-end;max-width:180px">${isTop?`<button onclick="canjear('${c.id}')" id="btn-canjear-${c.id}" class="btn btn-green" style="padding:10px 12px;font-size:11px">CANJEAR 0</button>`:`<button onclick="set200('${c.id}')" title="Poner a 200 para probar" style="background:#222;color:#f5c542;border:1px solid #333;padding:6px 8px;border-radius:8px;font-size:10px">TEST 200</button><button onclick="addPoints('${c.id}',10)" class="btn btn-gold" style="padding:6px 8px">+10</button>`}<button onclick="delClient('${c.id}')" id="btn-del-${c.id}" style="background:#1f1f1f;color:#ff4444;border:1px solid #333;padding:8px 10px;border-radius:8px;font-weight:800">X</button></div></div>`}).join(''); }
+function filterList(){ const q=document.getElementById('q').value.toLowerCase(); const visibles=all.filter(c=>!c.name.startsWith('[BORRADO]') && !c.mobile.startsWith('deleted_')); if(!q) render(visibles); else render(visibles.filter(c=>c.name.toLowerCase().includes(q)||c.mobile.includes(q))); }
+async function addClient(){ const name=document.getElementById('name').value.trim(),mobile=document.getElementById('mobile').value.trim(); let points=parseInt(document.getElementById('points').value)||10; points=Math.min(200,Math.max(0,points)); const msg=document.getElementById('manual-msg'); if(!name||!mobile){msg.style.display='block';msg.className='msg err';msg.innerText='Falta nombre o móvil';return;} msg.style.display='block';msg.className='msg ok';msg.innerText='Guardando...'; try{ const {data:ex}=await sb.from('clients').select('*').eq('mobile',mobile).maybeSingle(); if(ex){ if(ex.points>=200){msg.className='msg warn';msg.innerText='Ya tiene 200 - usa CANJEAR';return;} const nuevo=Math.min(200,ex.points+points); const {error}=await sb.from('clients').update({name,points:nuevo,last_visit:new Date().toISOString()}).eq('id',ex.id); if(error) throw error; msg.innerText='Actualizado a '+nuevo+' ✓'; }else{ const {error}=await sb.from('clients').insert({name,mobile,points}); if(error) throw error; msg.innerText='Guardado ✓'; } document.getElementById('name').value='';document.getElementById('mobile').value=''; loadOwner(); setTimeout(()=>msg.style.display='none',2000); }catch(e){msg.className='msg err';msg.innerText='Error: '+e.message; document.getElementById('rls-alert').style.display='block'; document.getElementById('debug-msg').style.display='block'; document.getElementById('debug-msg').innerText='addClient: '+e.message;} }
+async function addPoints(id,pts){ const cli=all.find(c=>c.id===id); if(!cli) return; if(cli.points>=200){alert('Ya tiene 200 - usa CANJEAR');return;} const nuevo=Math.min(200,cli.points+pts); cli.points=nuevo; render(all.filter(c=>!c.name.startsWith('[BORRADO]'))); const {error}=await sb.from('clients').update({points:nuevo,last_visit:new Date().toISOString()}).eq('id',id); if(error){ alert('Error sumando: '+error.message); document.getElementById('rls-alert').style.display='block'; } loadOwner(); }
+async function set200(id){ if(!confirm('¿Poner a 200 pts para probar CANJEAR?')) return; const cli=all.find(c=>c.id===id); cli.points=200; render(all.filter(c=>!c.name.startsWith('[BORRADO]'))); const {error}=await sb.from('clients').update({points:200}).eq('id',id); if(error){ alert('Error TEST 200: '+error.message); document.getElementById('rls-alert').style.display='block'; } loadOwner(); }
+async function canjear(id){ const cli=all.find(c=>c.id===id); if(!cli) return; if(!confirm('¿'+cli.name+' canjeó 50% OFF?\nSe pondrá a 0 pts y volverá a empezar desde 0.')) return; const btn=document.getElementById('btn-canjear-'+id); const row=document.getElementById('row-'+id); const msg=document.getElementById('del-msg'); const dbg=document.getElementById('debug-msg'); if(btn){btn.innerText='Canjeando...';btn.disabled=true;} if(row) row.classList.add('deleting'); msg.style.display='block';msg.className='msg ok';msg.innerText='🔄 Canjeando 50% OFF a '+cli.name+'... poniéndolo a 0'; dbg.style.display='block'; dbg.innerText='Canjear iniciado para '+cli.name+' id='+id; const backupPoints=cli.points; cli.points=0; render(all.filter(c=>!c.name.startsWith('[BORRADO]'))); try{ let res=await sb.from('clients').update({points:0,last_visit:new Date().toISOString()}).eq('id',id).select(); if(res.error) throw res.error; if(!res.data||res.data.length===0){ dbg.innerText+='\nIntento 1 0 filas, intento 2 solo points...'; res=await sb.from('clients').update({points:0}).eq('id',id).select(); if(res.error) throw res.error; if(!res.data||res.data.length===0){ dbg.innerText+='\nIntento 2 0 filas, intento 3 borrar+crear...'; const mobileTemp=cli.mobile; const nameTemp=cli.name; const del=await sb.from('clients').delete().eq('id',id).select(); if(del.error) throw del.error; const ins=await sb.from('clients').insert({name:nameTemp,mobile:mobileTemp,points:0}).select(); if(ins.error) throw ins.error; } } await sb.from('pending_requests').delete().eq('mobile',cli.mobile); msg.innerText='✅ ¡'+cli.name+' CANJEADO! Ahora 0/200 pts'; msg.className='msg ok'; dbg.innerText+='\n✅ CANJEADO OK'; loadOwner(); setTimeout(()=>{msg.style.display='none';},4000); }catch(e){ console.error('canjear final error',e); msg.className='msg err'; msg.innerText='❌ Error CANJEAR: '+e.message; dbg.innerText+='\n❌ Error canjear: '+e.message; document.getElementById('rls-alert').style.display='block'; cli.points=backupPoints; if(btn){btn.innerText='CANJEAR 0';btn.disabled=false;} if(row) row.classList.remove('deleting'); render(all.filter(c=>!c.name.startsWith('[BORRADO]'))); } }
+async function delClient(id){ const cli=all.find(c=>c.id===id); if(!cli){alert('Cliente no encontrado');return;} if(!confirm('¿Borrar DEFINITIVAMENTE a '+cli.name+' ('+cli.mobile+')?')) return; const btn=document.getElementById('btn-del-'+id); const row=document.getElementById('row-'+id); const msg=document.getElementById('del-msg'); const dbg=document.getElementById('debug-msg'); if(btn){btn.innerText='...';btn.disabled=true;} if(row) row.classList.add('deleting'); msg.style.display='block';msg.className='msg ok';msg.innerText='🗑️ Borrando a '+cli.name+'...'; dbg.style.display='block'; dbg.innerText='Borrando '+cli.name+' id='+id; const backupAll=[...all]; all=all.filter(c=>c.id!==id); render(all.filter(c=>!c.name.startsWith('[BORRADO]'))); document.getElementById('count-top').innerText=all.filter(c=>!c.name.startsWith('[BORRADO]')).length+' clientes'; try{ dbg.innerText+='\n1. Borrando solicitudes...'; const delReq=await sb.from('pending_requests').delete().eq('mobile',cli.mobile); if(delReq.error) dbg.innerText+='\n - Error solicitudes: '+delReq.error.message; else dbg.innerText+='\n - Solicitudes borradas'; dbg.innerText+='\n2. Borrando cliente...'; let delCli=await sb.from('clients').delete().eq('id',id).select(); if(delCli.error) throw delCli.error; if(!delCli.data||delCli.data.length===0){ dbg.innerText+='\n - Delete 0 filas, soft delete...'; const soft=await sb.from('clients').update({name:'[BORRADO] '+cli.name,points:0,mobile:'deleted_'+Date.now()+'_'+cli.mobile}).eq('id',id).select(); if(soft.error) throw soft.error; if(!soft.data||soft.data.length===0) throw new Error('Soft delete 0 filas - RLS bloquea UPDATE'); msg.innerText='✅ Cliente ocultado - ejecuta SQL arriba para borrado total'; dbg.innerText+='\n - Soft delete OK'; }else{ msg.innerText='✅ Cliente '+cli.name+' borrado definitivamente'; dbg.innerText+='\n - Borrado duro OK'; } document.getElementById('status').innerText='Borrado ✓'; setTimeout(()=>{msg.style.display='none'; dbg.style.display='none';},3000); loadOwner(); }catch(e){ console.error('del final error',e); msg.className='msg err'; msg.innerText='❌ Error X: '+e.message; dbg.innerText+='\n❌ Error final delete: '+e.message; document.getElementById('rls-alert').style.display='block'; all=backupAll; render(all.filter(c=>!c.name.startsWith('[BORRADO]'))); if(btn){btn.innerText='X';btn.disabled=false;} if(row) row.classList.remove('deleting'); } }
+async function aprobarYsumar(reqId,mobile,pts){ const {data:cli}=await sb.from('clients').select('*').eq('mobile',mobile).maybeSingle(); if(!cli){alert('Cliente no encontrado');return;} if(cli.points>=200){alert('Ya tiene 200 - usa CANJEAR'); return;} const nuevo=Math.min(200,cli.points+pts); const {error}=await sb.from('clients').update({points:nuevo,last_visit:new Date().toISOString()}).eq('id',cli.id); if(error){alert('Error: '+error.message); document.getElementById('rls-alert').style.display='block'; return;} await sb.from('pending_requests').update({status:'verificado'}).eq('id',reqId); loadOwner(); }
 async function rechazarReq(id){ if(!confirm('¿Borrar solicitud?'))return; const {error}=await sb.from('pending_requests').delete().eq('id',id); if(error){alert(error.message); document.getElementById('rls-alert').style.display='block'; return;} loadOwner(); }
-
 if(localStorage.getItem('barberbox_dueno_ok')==='1'){ document.getElementById('login').style.display='none'; document.getElementById('app').style.display='block'; loadOwner(); }
 </script></body></html>
