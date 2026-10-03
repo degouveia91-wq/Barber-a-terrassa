@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Barberbox | Cliente</title>
+<title>Barberbox | Cliente FINAL</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>*{box-sizing:border-box}body{margin:0;background:#0a0a0a;color:#fff;font-family:system-ui;overflow-x:hidden}
 .header{padding:16px;border-bottom:1px solid #222;text-align:center}
@@ -13,10 +13,10 @@ input{width:100%;background:#0f0f0f;border:1px solid #2a2a2a;color:#fff;padding:
 .msg{padding:10px;border-radius:10px;margin:10px 0;text-align:center;font-size:13px;display:none} .msg.ok{display:block;background:#22c55e11;border:1px solid #22c55e55;color:#22c55e} .msg.warn{display:block;background:#f5c54211;border:1px solid #f5c54255;color:#f5c542} .msg.err{display:block;background:#ef444411;border:1px solid #ef444455;color:#ef4444}
 .small-hint{color:#888;font-size:11px;text-align:center;margin-top:6px}
 </style></head><body>
-<div class="header"><b>💈 BARBERBOX</b><br><small style="color:#888">200 puntos = 50% OFF · 1 por semana mínimo</small></div>
+<div class="header"><b>💈 BARBERBOX</b><br><small style="color:#888">200 pts = 50% OFF · Corte +10 auto · Reseña +20 verificado por dueño</small></div>
 <div id="not-registered" class="card" style="display:none">
 <h3 style="color:#f5c542;margin:0 0 8px">¡Bienvenido! NFC escaneado</h3>
-<p style="color:#888;font-size:13px;margin:0 0 12px">Regístrate una vez. Se queda guardado. Luego NFC entra directo a puntos.</p>
+<p style="color:#888;font-size:13px;margin:0 0 12px">Regístrate una vez. Después cada visita suma puntos. Corte suma auto. Reseña la verifica el dueño por la noche.</p>
 <input id="c-name" placeholder="Tu nombre"><input id="c-mobile" placeholder="Tu móvil">
 <button id="btn-reg" class="btn">REGISTRARME</button>
 <div id="reg-msg" class="msg"></div>
@@ -27,7 +27,7 @@ input{width:100%;background:#0f0f0f;border:1px solid #2a2a2a;color:#fff;padding:
 <div style="font-size:64px;font-weight:900"><span id="c-points">0</span></div>
 <div style="color:#888;font-size:13px">/ 200 puntos para 50% OFF</div>
 <div class="progress"><div id="c-progress" class="progress-bar" style="width:0%"></div></div>
-<div id="c-reward" style="display:none;background:#22c55e11;border:1px solid #22c55e55;color:#22c55e;padding:12px;border-radius:12px;margin-top:10px;font-weight:800">¡50% OFF disponible!</div>
+<div id="c-reward" style="display:none;background:#22c55e11;border:1px solid #22c55e55;color:#22c55e;padding:12px;border-radius:12px;margin-top:10px;font-weight:800">¡50% OFF disponible! Muestra al dueño para canjear</div>
 </div>
 <p id="c-last" style="color:#666;font-size:11px;text-align:center"></p>
 <div id="status-msg" class="msg"></div>
@@ -35,14 +35,14 @@ input{width:100%;background:#0f0f0f;border:1px solid #2a2a2a;color:#fff;padding:
 <div id="corte-hint" class="small-hint"></div>
 <button id="btn-resena" class="btn btn-white" style="margin-top:6px">⭐ DEJÉ RESEÑA EN GOOGLE (+20 PTS)</button>
 <div id="resena-hint" class="small-hint"></div>
-<p style="color:#666;font-size:11px;text-align:center;margin-top:10px">Queda ENVIADO y bloqueado 7 días. Solo 1 por semana.</p>
+<p style="color:#666;font-size:11px;text-align:center;margin-top:10px">Corte: suma auto al instante. Reseña: queda pendiente hasta que el dueño verifique en Google.</p>
 <button onclick="resetLocal()" style="background:none;border:0;color:#444;font-size:11px;margin-top:14px;width:100%">Cambiar móvil</button>
 </div>
 <script>
 const SUPABASE_URL="https://sxpczzosxyuishwrwytv.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4cGN6em9zeHl1aXNod3J3eXR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0NTMyOTcsImV4cCI6MjEwNjAyOTI5N30.X9dFdEsLwem85GpdYEMkeGItPFtkrfyWG3uHXwfgfJI";
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-function showMsg(id,text,type){const el=document.getElementById(id);el.className='msg '+type;el.innerText=text;el.style.display='block';if(type!=='err')setTimeout(()=>{el.style.display='none';},6000);}
+function showMsg(id,text,type){const el=document.getElementById(id);el.className='msg '+type;el.innerText=text;el.style.display='block';if(type!=='err')setTimeout(()=>{el.style.display='none';},7000);}
 async function load(){
   const mob=localStorage.getItem('barberbox_mobile');
   const nam=localStorage.getItem('barberbox_name');
@@ -68,43 +68,54 @@ async function load(){
 async function actualizarLimites(){
   const mobile=localStorage.getItem('barberbox_mobile');
   if(!mobile)return;
+  try{
+    const {data:cliTop}=await sb.from('clients').select('points').eq('mobile',mobile).maybeSingle();
+    if(cliTop && cliTop.points>=200){
+      document.getElementById('btn-corte').disabled=true;
+      document.getElementById('btn-corte').innerText='🏆 200 PTS - CANJEA TU 50% OFF EN BARBERÍA';
+      document.getElementById('btn-resena').disabled=true;
+      document.getElementById('btn-resena').innerText='🏆 200 PTS - CANJEA TU 50% OFF';
+      showMsg('status-msg','¡Llegaste a 200 puntos! Muestra esto al dueño para tu 50% OFF. Él reiniciará a 0.','ok');
+      return;
+    }
+  }catch(_){}
   const oneWeekAgo=new Date(Date.now()-7*24*60*60*1000).toISOString();
   const lastCorteLocal=localStorage.getItem('barberbox_last_corte');
   const lastResenaLocal=localStorage.getItem('barberbox_last_resena');
-  let bloqueoCorteLocal=false, bloqueoResenaLocal=false;
-  if(lastCorteLocal && (Date.now()-parseInt(lastCorteLocal)) < 7*24*60*60*1000) bloqueoCorteLocal=true;
-  if(lastResenaLocal && (Date.now()-parseInt(lastResenaLocal)) < 7*24*60*60*1000) bloqueoResenaLocal=true;
+  let bloqueoCorte=false, bloqueoResena=false;
+  if(lastCorteLocal && (Date.now()-parseInt(lastCorteLocal)) < 7*24*60*60*1000) bloqueoCorte=true;
+  if(lastResenaLocal && (Date.now()-parseInt(lastResenaLocal)) < 7*24*60*60*1000) bloqueoResena=true;
   try{
     const {data:cortes}=await sb.from('pending_requests').select('*').eq('mobile',mobile).eq('type','corte 10pts').gte('created_at',oneWeekAgo).limit(1);
     const {data:resenas}=await sb.from('pending_requests').select('*').eq('mobile',mobile).eq('type','resena Google 20pts').gte('created_at',oneWeekAgo).limit(1);
     const btnCorte=document.getElementById('btn-corte');
     const btnResena=document.getElementById('btn-resena');
-    if((cortes && cortes.length>0) || bloqueoCorteLocal){
+    if((cortes && cortes.length>0) || bloqueoCorte){
       const fecha=cortes && cortes.length>0 ? new Date(cortes[0].created_at) : new Date(parseInt(lastCorteLocal));
       const disponible=new Date(fecha.getTime()+7*24*60*60*1000);
       btnCorte.disabled=true;
-      btnCorte.innerText='✔️ ENVIADO (+10) - Bloqueado 7 días';
-      document.getElementById('corte-hint').innerText='Enviado '+fecha.toLocaleDateString('es-ES')+' · Disponible '+disponible.toLocaleDateString('es-ES');
+      btnCorte.innerText='✔️ +10 YA SUMADO - Bloqueado 7 días';
+      document.getElementById('corte-hint').innerText='Sumado '+fecha.toLocaleDateString('es-ES')+' · Disponible '+disponible.toLocaleDateString('es-ES');
     }else{
       btnCorte.disabled=false;
       btnCorte.innerText='✂️ HE VENIDO A CORTARME (+10 PTS)';
-      document.getElementById('corte-hint').innerText='Puedes solicitar 1 corte cada 7 días';
+      document.getElementById('corte-hint').innerText='Suma +10 auto al instante';
     }
-    if((resenas && resenas.length>0) || bloqueoResenaLocal){
+    if((resenas && resenas.length>0) || bloqueoResena){
       const fecha=resenas && resenas.length>0 ? new Date(resenas[0].created_at) : new Date(parseInt(lastResenaLocal));
       const disponible=new Date(fecha.getTime()+7*24*60*60*1000);
       btnResena.disabled=true;
-      btnResena.innerText='✔️ ENVIADO (+20) - Bloqueado 7 días';
-      document.getElementById('resena-hint').innerText='Enviado '+fecha.toLocaleDateString('es-ES')+' · Disponible '+disponible.toLocaleDateString('es-ES');
+      btnResena.innerText='⏳ RESEÑA EN VERIFICACIÓN - Dueño revisará esta noche';
+      document.getElementById('resena-hint').innerText='Enviada '+fecha.toLocaleDateString('es-ES')+' · Dueño verificará en Google';
     }else{
       btnResena.disabled=false;
       btnResena.innerText='⭐ DEJÉ RESEÑA EN GOOGLE (+20 PTS)';
-      document.getElementById('resena-hint').innerText='Puedes solicitar 1 reseña cada 7 días';
+      document.getElementById('resena-hint').innerText='Queda pendiente hasta que el dueño verifique tu reseña en Google';
     }
   }catch(e){
     console.log(e);
-    if(bloqueoCorteLocal){document.getElementById('btn-corte').disabled=true;document.getElementById('btn-corte').innerText='✔️ ENVIADO - Bloqueado 7 días';}
-    if(bloqueoResenaLocal){document.getElementById('btn-resena').disabled=true;document.getElementById('btn-resena').innerText='✔️ ENVIADO - Bloqueado 7 días';}
+    if(bloqueoCorte){document.getElementById('btn-corte').disabled=true;document.getElementById('btn-corte').innerText='✔️ Bloqueado 7 días';}
+    if(bloqueoResena){document.getElementById('btn-resena').disabled=true;document.getElementById('btn-resena').innerText='⏳ En verificación';}
   }
 }
 async function registrar(){
@@ -119,52 +130,72 @@ async function registrar(){
     if(ex){localStorage.setItem('barberbox_mobile',mobile);localStorage.setItem('barberbox_name',ex.name);showMsg('reg-msg','¡Ya estabas registrado! Entrando...','ok');setTimeout(load,600);return;}
     const {error}=await sb.from('clients').insert({name,mobile,points:0});
     if(error)throw error;
-    try{await sb.from('pending_requests').insert({mobile,name,type:'registro',status:'pendiente'});}catch(_){}
     localStorage.setItem('barberbox_mobile',mobile);
     localStorage.setItem('barberbox_name',name);
-    showMsg('reg-msg','¡Registrado! Ahora entras directo con NFC','ok');
+    showMsg('reg-msg','¡Registrado!','ok');
     setTimeout(load,600);
   }catch(err){showMsg('reg-msg','Error: '+err.message,'err');}finally{btn.disabled=false;btn.innerText=old;}
 }
-async function avisar(tipo, puntos){
+// CORTE +10 AUTOMÁTICO
+async function corteAuto(){
   const mobile=localStorage.getItem('barberbox_mobile');
   const name=localStorage.getItem('barberbox_name')||'Cliente';
-  if(!mobile){showMsg('status-msg','No hay móvil guardado','err');return;}
-  const oneWeekAgo=new Date(Date.now()-7*24*60*60*1000).toISOString();
-  const lastKey=tipo.includes('corte')?'barberbox_last_corte':'barberbox_last_resena';
+  if(!mobile){showMsg('status-msg','No hay móvil','err');return;}
+  const lastKey='barberbox_last_corte';
   const lastLocal=localStorage.getItem(lastKey);
   if(lastLocal && (Date.now()-parseInt(lastLocal)) < 7*24*60*60*1000){
     const disponible=new Date(parseInt(lastLocal)+7*24*60*60*1000);
-    showMsg('status-msg','Ya solicitaste '+tipo+' - Disponible el '+disponible.toLocaleDateString('es-ES'),'warn');
-    await actualizarLimites();return;
+    showMsg('status-msg','Ya sumaste corte - Disponible el '+disponible.toLocaleDateString('es-ES'),'warn');return;
   }
+  const btn=document.getElementById('btn-corte');
+  btn.disabled=true;btn.innerText='Sumando...';
   try{
-    const {data:recientes}=await sb.from('pending_requests').select('*').eq('mobile',mobile).eq('type',tipo).gte('created_at',oneWeekAgo).limit(1);
-    if(recientes && recientes.length>0){
-      const disponible=new Date(new Date(recientes[0].created_at).getTime()+7*24*60*60*1000);
-      showMsg('status-msg','Ya solicitaste '+tipo+' - Disponible el '+disponible.toLocaleDateString('es-ES'),'warn');
-      localStorage.setItem(lastKey, new Date(recientes[0].created_at).getTime().toString());
-      await actualizarLimites();return;
-    }
-  }catch(e){console.log(e);}
-  const btnId=tipo.includes('corte')?'btn-corte':'btn-resena';
-  const btn=document.getElementById(btnId);
+    const {data:cli,error:eSel}=await sb.from('clients').select('*').eq('mobile',mobile).maybeSingle();
+    if(eSel) throw eSel;
+    if(!cli) throw new Error('Cliente no encontrado');
+    if(cli.points>=200){showMsg('status-msg','Ya tienes 200 - canjea tu 50% OFF','warn');await actualizarLimites();return;}
+    const nuevo=Math.min(200, cli.points+10);
+    const {error:eUpd}=await sb.from('clients').update({points:nuevo,last_visit:new Date().toISOString()}).eq('id',cli.id);
+    if(eUpd) throw eUpd;
+    localStorage.setItem(lastKey, Date.now().toString());
+    document.getElementById('c-points').innerText=nuevo;
+    document.getElementById('c-progress').style.width=Math.min(100,Math.round((nuevo/200)*100))+'%';
+    document.getElementById('c-reward').style.display=nuevo>=200?'block':'none';
+    showMsg('status-msg','¡+10 puntos! Ahora '+nuevo+'/200','ok');
+    await actualizarLimites();
+  }catch(err){showMsg('status-msg','Error: '+err.message,'err');btn.disabled=false;btn.innerText='✂️ HE VENIDO A CORTARME (+10 PTS)';}
+}
+// RESEÑA +20 - QUEDA PENDIENTE PARA DUEÑO VERIFICAR POR LA NOCHE
+async function resenaPendiente(){
+  const mobile=localStorage.getItem('barberbox_mobile');
+  const name=localStorage.getItem('barberbox_name')||'Cliente';
+  if(!mobile){showMsg('status-msg','No hay móvil','err');return;}
+  const lastKey='barberbox_last_resena';
+  const lastLocal=localStorage.getItem(lastKey);
+  if(lastLocal && (Date.now()-parseInt(lastLocal)) < 7*24*60*60*1000){
+    const disponible=new Date(parseInt(lastLocal)+7*24*60*60*1000);
+    showMsg('status-msg','Ya solicitaste reseña - Disponible el '+disponible.toLocaleDateString('es-ES'),'warn');return;
+  }
+  const btn=document.getElementById('btn-resena');
   btn.disabled=true;btn.innerText='Enviando...';
   try{
-    const {error}=await sb.from('pending_requests').insert({mobile,name,type:tipo,status:'pendiente'});
-    if(error)throw error;
+    const oneWeekAgo=new Date(Date.now()-7*24*60*60*1000).toISOString();
+    const {data:recientes}=await sb.from('pending_requests').select('*').eq('mobile',mobile).eq('type','resena Google 20pts').gte('created_at',oneWeekAgo).limit(1);
+    if(recientes && recientes.length>0){showMsg('status-msg','Ya solicitaste reseña esta semana','warn');await actualizarLimites();return;}
+    const {data:cli}=await sb.from('clients').select('points').eq('mobile',mobile).maybeSingle();
+    if(cli && cli.points>=200){showMsg('status-msg','Ya tienes 200 - canjea','warn');await actualizarLimites();return;}
+    const {error}=await sb.from('pending_requests').insert({mobile,name,type:'resena Google 20pts',status:'pendiente'});
+    if(error) throw error;
     localStorage.setItem(lastKey, Date.now().toString());
-    btn.innerText='✔️ ENVIADO (+'+puntos+') - Bloqueado 7 días';
-    showMsg('status-msg','¡Enviado! Bloqueado 7 días hasta que el dueño lo acepte','ok');
+    btn.innerText='⏳ EN VERIFICACIÓN - Dueño revisará en Google esta noche';
+    showMsg('status-msg','¡Solicitud enviada! El dueño verificará tu reseña en Google esta noche y te dará +20 pts','ok');
     await actualizarLimites();
-  }catch(err){showMsg('status-msg','Error: '+err.message,'err');btn.disabled=false;}
+  }catch(err){showMsg('status-msg','Error: '+err.message,'err');btn.disabled=false;btn.innerText='⭐ DEJÉ RESEÑA EN GOOGLE (+20 PTS)';}
 }
-function avisarCorte(){return avisar('corte 10pts',10);}
-function avisarResena(){return avisar('resena Google 20pts',20);}
 function resetLocal(){if(confirm('¿Borrar móvil?')){localStorage.removeItem('barberbox_mobile');localStorage.removeItem('barberbox_name');localStorage.removeItem('barberbox_last_corte');localStorage.removeItem('barberbox_last_resena');location.reload();}}
 document.getElementById('btn-reg').addEventListener('click',registrar);
-document.getElementById('btn-corte').addEventListener('click',avisarCorte);
-document.getElementById('btn-resena').addEventListener('click',avisarResena);
+document.getElementById('btn-corte').addEventListener('click',corteAuto);
+document.getElementById('btn-resena').addEventListener('click',resenaPendiente);
 document.getElementById('c-mobile').addEventListener('keydown',e=>{if(e.key==='Enter')registrar();});
 load();
 </script></body></html>
