@@ -1,0 +1,33 @@
+{
+  "name": "Barberia Terrassa - Due\u00f1o",
+  "short_name": "Barber Due\u00f1o",
+  "description": "Panel due\u00f1o - Ranking y Registro - Since 1999",
+  "start_url": "/dueno.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0a1931",
+  "icons": [
+    {
+      "src": "/icon-192-new.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512-new.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-192-maskable-new.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512-maskable-new.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ]
+}
