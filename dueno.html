@@ -1,197 +1,149 @@
 <!DOCTYPE html>
-<html lang="es"><head>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Barber Dueño - Barbería Terrassa</title>
 
-<link rel="manifest" href="/manifest-dueno-new.json">
+<!-- PWA NEGRO PREMIUM + LOGO 1999 -->
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Barber Dueño">
 <link rel="apple-touch-icon" href="/icon-180-new.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192-new.png">
+<link rel="manifest" href="/manifest-dueno.json">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  body{font-family:'Inter',sans-serif;background:#000;color:#fff; -webkit-tap-highlight-color: transparent;}
+  .bebas{font-family:'Bebas Neue',sans-serif}
+  .glass{background:rgba(255,255,255,0.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.1)}
+</style>
+</head>
+<body class="min-h-screen bg-black text-white antialiased">
+<!-- HEADER NEGRO -->
+<header class="sticky top-0 z-50 bg-black border-b border-zinc-800 px-5 py-4 flex items-center justify-between" style="padding-top: env(safe-area-inset-top);">
+  <div class="flex items-center gap-3">
+    <img src="/icon-192-new.png" class="w-10 h-10 rounded-xl bg-white object-contain p-1">
+    <div>
+      <h1 class="bebas text-[22px] leading-none tracking-widest">BARBERIA TERRASSA</h1>
+      <p class="text-[10px] tracking-[0.3em] text-zinc-400 -mt-1">DUEÑO • SINCE 1999</p>
+    </div>
+  </div>
+  <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_#22c55e]"></div>
+</header>
+
+<main class="p-5 pb-28 max-w-md mx-auto">
+  <!-- STATS -->
+  <div class="grid grid-cols-2 gap-3 mb-6">
+    <div class="glass rounded-2xl p-4">
+      <p class="text-[11px] text-zinc-400 uppercase tracking-widest">Hoy</p>
+      <p class="bebas text-3xl" id="stat-hoy">0 cortes</p>
+    </div>
+    <div class="glass rounded-2xl p-4 bg-gradient-to-br from-zinc-900 to-black">
+      <p class="text-[11px] text-zinc-400 uppercase tracking-widest">Por verificar</p>
+      <p class="bebas text-3xl text-yellow-400" id="stat-pend">0</p>
+    </div>
+  </div>
+
+  <!-- VERIFICACION NOCTURNA -->
+  <div class="bg-white text-black rounded-[20px] p-5 mb-6">
+    <h2 class="bebas text-2xl tracking-wide flex items-center gap-2">🌙 VERIFICACIÓN NOCHE</h2>
+    <p class="text-[13px] text-zinc-600 mb-4">Marca quién vino hoy. Solo lo verificado suma puntos.</p>
+    <div id="lista-reservas" class="space-y-3">
+      <!-- Se llena con JS -->
+    </div>
+    <button onclick="verificarTodo()" class="w-full mt-5 bg-black text-white bebas text-xl tracking-widest py-3 rounded-xl">VERIFICAR SELECCIONADOS +20 PTS</button>
+  </div>
+
+  <!-- REGISTRO NFC -->
+  <div class="glass rounded-[20px] p-5">
+    <h3 class="bebas text-xl tracking-widest">📲 REGISTRO NFC CLIENTE</h3>
+    <p class="text-xs text-zinc-400 mb-3">Cuando un cliente escanea la tarjeta NFC</p>
+    <input id="nfc-nombre" placeholder="Tu nombre" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 mb-2 text-white outline-none">
+    <input id="nfc-movil" placeholder="Tu móvil" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 mb-3 text-white outline-none">
+    <button onclick="registrarNFC()" class="w-full bg-yellow-400 text-black font-black py-3 rounded-xl uppercase tracking-widest">Registrarme</button>
+    <p id="nfc-msg" class="text-xs text-center mt-3 text-zinc-500"></p>
+  </div>
+</main>
+
+<nav class="fixed bottom-0 left-0 right-0 bg-zinc-950 border-t border-zinc-800 flex justify-around py-3" style="padding-bottom: env(safe-area-inset-bottom);">
+  <button class="flex flex-col items-center text-white"><span class="text-xl">◧</span><span class="text-[10px] tracking-widest mt-1">DUEÑO</span></button>
+  <button onclick="location.href='/index.html'" class="flex flex-col items-center text-zinc-500"><span class="text-xl">◫</span><span class="text-[10px] tracking-widest mt-1">CLIENTE</span></button>
+</nav>
+
 <script>
-if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }
-</script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Barberbox | DUEÑO FINAL PRO</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>*{box-sizing:border-box}body{margin:0;background:#0a0a0a;color:#fff;font-family:system-ui;overflow-x:hidden}
-.header{padding:14px 16px;border-bottom:1px solid #222;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#0a0a0a;z-index:10}
-.badge{font-size:10px;background:#111;border:1px solid #333;padding:6px 10px;border-radius:20px}.badge.ok{color:#22c55e;border-color:#22c55e66;background:#22c55e11}.badge.gold{color:#000;background:#f5c542;border-color:#f5c542;font-weight:800}
-.wrap{max-width:760px;margin:0 auto;padding:14px;width:100%}
-.card{background:#151515;border:1px solid #222;border-radius:16px;padding:14px;margin-bottom:12px;overflow:hidden}
-input{width:100%;background:#0f0f0f;border:1px solid #2a2a2a;color:#fff;padding:10px;border-radius:8px;margin-bottom:6px;font-size:13px}
-.btn{padding:8px 12px;border-radius:8px;border:0;font-weight:800;cursor:pointer;font-size:12px}.btn-gold{background:#f5c542;color:#000}.btn-white{background:#fff;color:#000}.btn-green{background:#22c55e;color:#000}.btn-red{background:#ef4444;color:#fff}
-.client{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #1e1e1e}
-.client.top{background:#f5c5420a;border:1px solid #f5c54233;border-radius:12px;padding:10px;margin-bottom:6px}
-.progress{height:6px;background:#222;border-radius:10px;overflow:hidden;margin:4px 0}.progress-bar{height:100%;background:#f5c542;transition:width .3s}
-#login{max-width:380px;margin:80px auto;padding:20px}
-.msg{padding:10px;border-radius:10px;margin:8px 0;text-align:center;font-size:12px;display:none;word-break:break-word}.msg.ok{display:block;background:#22c55e11;border:1px solid #22c55e55;color:#22c55e}.msg.err{display:block;background:#ef444411;border:1px solid #ef444455;color:#ef4444}.msg.warn{display:block;background:#f5c54211;border:1px solid #f5c54255;color:#f5c542}
-.tab{display:flex;gap:6px;margin-bottom:10px}.tab button{flex:1;padding:10px;border-radius:10px;border:1px solid #333;background:#0f0f0f;color:#888;font-weight:700}.tab button.active{background:#f5c542;color:#000;border-color:#f5c542}
-.small{color:#666;font-size:11px}
-</style></head><body>
-<div id="login" class="card"><h3 style="color:#f5c542;margin:0 0 10px">ÁREA DUEÑO - BARBERBOX PRO</h3><p style="color:#888;font-size:13px">Clave 1999</p><input id="pass" type="password" placeholder="••••"><button class="btn btn-gold" style="width:100%;padding:12px" onclick="checkPass()">ENTRAR</button><div id="login-msg" class="msg"></div></div>
-<div id="app" style="display:none"><div class="header"><div><b>💈 DUEÑO PRO</b></div><div style="display:flex;gap:6px;align-items:center"><div id="count-top" class="badge gold">0</div><div id="status" class="badge">Cargando...</div><button onclick="logoutDueno()" style="background:none;border:0;color:#666;font-size:11px">Salir</button></div></div><div class="wrap">
-
-<div class="card" style="border-color:#22c55e;background:#22c55e0a"><h3 style="color:#22c55e;margin:0 0 4px;font-size:12px">✅ MODO FINAL - DUEÑO LIBRE</h3><small class="small">• Corte +10 = automático (cliente suma solo)<br>• Reseña +20 = queda aquí para que verifiques en Google por la noche y aceptes<br>• 200 pts = tope, no suma más, solo tú puedes CANJEAR a 0</small></div>
-
-<div class="tab"><button id="tab-rank" class="active" onclick="switchTab('rank')">🏆 RANKING (Mayor a menor)</button><button id="tab-all" onclick="switchTab('all')">📋 REGISTRO TOTAL</button></div>
-
-<div id="view-rank">
-<div class="card" style="border-color:#f5c542;background:#f5c5420a"><h3 style="margin:0 0 6px;color:#f5c542;font-size:12px">🔔 RESEÑAS POR VERIFICAR (Revisa en Google por la noche)</h3><div id="pending-list"></div><small class="small">Verifica que la reseña existe en tu ficha de Google y dale +20 OK. Si es falsa, dale X.</small></div>
-
-<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0;color:#888;font-size:11px">🏆 RANKING - MAYOR A MENOR (200 = 50% OFF - TOPE)</h3><input id="q" placeholder="Buscar" oninput="filterList()" style="max-width:110px"></div><div id="list-rank"></div></div>
-</div>
-
-<div id="view-all" style="display:none">
-<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0;color:#888;font-size:11px">📋 REGISTRO TOTAL DE CLIENTES (Para promociones)</h3><input id="q2" placeholder="Buscar nombre/tel" oninput="filterList2()" style="max-width:130px"></div><div style="display:flex;gap:6px;margin-bottom:8px"><small class="small" id="stat-inactivos" style="background:#111;padding:4px 8px;border-radius:20px;border:1px solid #333"></small><small class="small" id="stat-total2" style="background:#111;padding:4px 8px;border-radius:20px;border:1px solid #333"></small></div><div id="list-all"></div><div style="margin-top:10px;display:flex;gap:6px"><button class="btn btn-white" style="flex:1" onclick="exportCSV()">📤 EXPORTAR CSV PARA WHATSAPP</button></div></div>
-</div>
-
-<div class="card"><h3 style="margin:0 0 8px;color:#888;font-size:11px">➕ AGREGAR MANUAL</h3><div style="display:flex;gap:6px"><input id="name" placeholder="Nombre" style="flex:1"><input id="mobile" placeholder="Móvil" style="flex:1"><input id="points" type="number" value="10" style="width:70px"><button class="btn btn-gold" onclick="addClient()">GUARDAR</button></div><div id="manual-msg" class="msg"></div></div>
-
-<div id="del-msg" class="msg"></div>
-</div></div>
-<script>
-const CLAVE_DUENO="1999";
-const SUPABASE_URL="https://sxpczzosxyuishwrwytv.supabase.co";
-const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4cGN6em9zeHl1aXNod3J3eXR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0NTMyOTcsImV4cCI6MjEwNjAyOTI5N30.X9dFdEsLwem85GpdYEMkeGItPFtkrfyWG3uHXwfgfJI";
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-let all=[], filteredAll=[];
-let currentTab='rank';
-
-function switchTab(t){
-  currentTab=t;
-  document.getElementById('tab-rank').className=t==='rank'?'active':'';
-  document.getElementById('tab-all').className=t==='all'?'active':'';
-  document.getElementById('view-rank').style.display=t==='rank'?'block':'none';
-  document.getElementById('view-all').style.display=t==='all'?'block':'none';
-}
-
-function checkPass(){ const p=document.getElementById('pass').value.trim(); if(p===CLAVE_DUENO){ localStorage.setItem('barberbox_dueno_ok','1'); document.getElementById('login').style.display='none'; document.getElementById('app').style.display='block'; loadOwner(); }else{ const m=document.getElementById('login-msg'); m.style.display='block';m.className='msg err';m.innerText='Clave incorrecta'; } }
-function logoutDueno(){ if(confirm('¿Salir?')){localStorage.removeItem('barberbox_dueno_ok');location.reload();} }
-
-async function loadOwner(){
+// SISTEMA TIEMPO REAL
+function loadReservas(){
   try{
-    const {data,error}=await sb.from('clients').select('*').order('points',{ascending:false}).limit(500);
-    if(error) throw error;
-    all=data||[];
-    all.sort((a,b)=>b.points-a.points);
-    document.getElementById('count-top').innerText=all.length+' clientes';
-    document.getElementById('status').innerText='Conectado ✓ '+all.length;
-    document.getElementById('status').className='badge ok';
-    document.getElementById('stat-total2').innerText='Total: '+all.length;
-    const inactivos=all.filter(c=>{ const last=c.last_visit?new Date(c.last_visit):null; if(!last) return true; const diff=(Date.now()-last.getTime())/(1000*60*60*24); return diff>30; }).length;
-    document.getElementById('stat-inactivos').innerText='Inactivos +30d: '+inactivos;
-    renderRank(all);
-    renderAll(all);
-  }catch(e){
-    document.getElementById('status').innerText='Error: '+e.message;
-    document.getElementById('list-rank').innerHTML='<small style="color:#ff4444">'+e.message+'</small>';
-  }
-  try{
-    const {data:pend,error:e2}=await sb.from('pending_requests').select('*').eq('status','pendiente').eq('type','resena Google 20pts').order('created_at',{ascending:false}).limit(100);
-    if(e2) throw e2;
-    const pendientes=pend||[];
-    document.getElementById('pending-list').innerHTML=pendientes.length?pendientes.map(p=>{
-      const fecha=new Date(p.created_at);
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1e1e1e"><div><b>${p.name}</b> <small style="color:#666">${p.mobile}</small><br><small style="color:#f5c542">⭐ Reseña Google +20 pts - Verificar en Google</small><br><small style="color:#555">${fecha.toLocaleString('es-ES')}</small></div><div style="display:flex;gap:4px"><button onclick="aprobarResena('${p.id}','${p.mobile}')" style="background:#22c55e;color:#000;border:0;padding:10px 12px;border-radius:8px;font-weight:800">✓ +20 VERIFICADO</button><button onclick="rechazarReq('${p.id}')" style="background:#1a1a1a;color:#ef4444;border:1px solid #333;padding:10px 12px;border-radius:8px">X FALSO</button></div></div>`
-    }).join(''):'<small style="color:#666">Sin reseñas por verificar - Todo al día ✅</small>';
-  }catch(e){ document.getElementById('pending-list').innerHTML='<small style="color:#ff4444">Error reseñas: '+e.message+'</small>'; }
+    return JSON.parse(localStorage.getItem('barber_reservas') || '[{"id":1,"nombre":"Carlos R.","hora":"10:00","servicio":"Corte + Barba","verificado":false},{"id":2,"nombre":"Jose A.","hora":"11:30","servicio":"Corte","verificado":false},{"id":3,"nombre":"Marc S.","hora":"17:00","servicio":"Corte","verificado":false}]');
+  }catch(e){return [];}
 }
+let reservas = loadReservas();
+let lastCount = reservas.length;
 
-function renderRank(arr){
-  if(!arr.length){ document.getElementById('list-rank').innerHTML='<small style="color:#666">Sin clientes</small>'; return; }
-  document.getElementById('list-rank').innerHTML=arr.map((c,i)=>{
-    const pct=Math.min(100,Math.round((c.points/200)*100));
-    const isTop=c.points>=200;
-    return `<div class="client ${isTop?'top':''}"><div style="min-width:0;flex:1"><div style="display:flex;gap:6px;align-items:center"><span style="color:#666;font-size:10px">#${i+1}</span><b>${c.name}</b> <small style="color:#666">${c.mobile}</small>${isTop?'<span style="background:#22c55e;color:#000;font-size:8px;padding:2px 6px;border-radius:10px;font-weight:800">50% OFF</span>':''}</div><div class="progress"><div class="progress-bar" style="width:${pct}%;background:${isTop?'#22c55e':'#f5c542'}"></div></div><small style="color:${isTop?'#22c55e':'#888'}">${c.points}/200 ${isTop?' - TOPE - CANJEAR' : ''}</small></div><div style="display:flex;gap:4px;align-items:center">${isTop?`<button onclick="canjear('${c.id}')" class="btn btn-green" style="padding:8px 10px">CANJEAR 0</button>`:`<button onclick="addPoints('${c.id}',10)" class="btn btn-gold" style="padding:6px 8px">+10</button>`}<button onclick="delClient('${c.id}')" style="background:#1f1f1f;color:#ff4444;border:1px solid #333;padding:6px 8px;border-radius:8px;font-weight:800">X</button></div></div>`
-  }).join('');
-}
-function renderAll(arr){
-  filteredAll=arr;
-  if(!arr.length){ document.getElementById('list-all').innerHTML='<small style="color:#666">Sin clientes registrados</small>'; return; }
-  document.getElementById('list-all').innerHTML=arr.map(c=>{
-    const last=c.last_visit?new Date(c.last_visit):null;
-    const diffDays=last?Math.floor((Date.now()-last.getTime())/(1000*60*60*24)) : 999;
-    const isInactive=diffDays>30;
-    return `<div class="client" style="background:${isInactive?'#ef44440a':''}"><div style="min-width:0;flex:1"><b>${c.name}</b> <small style="color:#666">${c.mobile}</small><br><small style="color:${isInactive?'#ef4444':'#888'}">📅 ${last?last.toLocaleDateString('es-ES'):'Nunca'} · Hace ${diffDays>999?'mucho':diffDays+' días'} ${isInactive?'· INACTIVO - ¡Enviar promo!' : ''}</small><br><small style="color:#555">${c.points} pts · ${c.mobile}</small></div><div style="display:flex;gap:4px"><a href="https://wa.me/${c.mobile.replace(/[^0-9]/g,'')}" target="_blank" style="background:#25D366;color:#000;padding:6px 8px;border-radius:8px;text-decoration:none;font-weight:800;font-size:11px">WA</a></div></div>`
-  }).join('');
-}
-function filterList(){ const q=document.getElementById('q').value.toLowerCase(); renderRank(all.filter(c=>c.name.toLowerCase().includes(q)||c.mobile.includes(q))); }
-function filterList2(){ const q=document.getElementById('q2').value.toLowerCase(); renderAll(all.filter(c=>c.name.toLowerCase().includes(q)||c.mobile.includes(q))); }
+function render(){
+  reservas = loadReservas(); // siempre recarga lo ultimo
+  const cont = document.getElementById('lista-reservas');
+  cont.innerHTML = reservas.map(r=>`
+    <label class="flex items-center gap-3 ${r.nuevo?'bg-yellow-100 animate-pulse':''} bg-zinc-100 rounded-xl p-3 cursor-pointer border ${r.nuevo?'border-yellow-400':''}">
+      <input type="checkbox" data-id="${r.id}" ${r.verificado?'checked disabled':''} class="w-5 h-5 accent-black">
+      <div class="flex-1">
+        <p class="font-bold text-sm text-black">${r.hora} - ${r.nombre} ${r.verificado?'✓':''} ${r.nuevo?'<span class="bg-red-500 text-white text-[9px] px-1.5 py-0.5 rounded-full ml-1">NUEVO</span>':''}</p>
+        <p class="text-[11px] text-zinc-500">${r.servicio} ${r.verificado?'(+20 pts dado)':''}</p>
+      </div>
+    </label>
+  `).join('') || '<p class="text-sm text-zinc-500">No hay reservas hoy</p>';
+  document.getElementById('stat-hoy').textContent = reservas.length + ' cortes';
+  document.getElementById('stat-pend').textContent = reservas.filter(r=>!r.verificado).length;
 
-async function addClient(){
-  const name=document.getElementById('name').value.trim(),mobile=document.getElementById('mobile').value.trim(); let points=parseInt(document.getElementById('points').value)||10; points=Math.min(200,Math.max(0,points));
-  const msg=document.getElementById('manual-msg');
-  if(!name||!mobile){msg.style.display='block';msg.className='msg err';msg.innerText='Falta nombre o móvil';return;}
-  msg.style.display='block';msg.className='msg ok';msg.innerText='Guardando...';
-  try{
-    const {data:ex}=await sb.from('clients').select('*').eq('mobile',mobile).maybeSingle();
-    if(ex){
-      if(ex.points>=200){msg.className='msg warn';msg.innerText='Ya tiene 200 - usa CANJEAR';return;}
-      const nuevo=Math.min(200,ex.points+points);
-      const {error}=await sb.from('clients').update({name,points:nuevo,last_visit:new Date().toISOString()}).eq('id',ex.id);
-      if(error) throw error;
-      msg.innerText='Actualizado a '+nuevo+' ✓';
-    }else{
-      const {error}=await sb.from('clients').insert({name,mobile,points});
-      if(error) throw error;
-      msg.innerText='Guardado ✓';
+  // Detecta nuevo registro
+  if(reservas.length > lastCount){
+    // Sonido + vibración
+    try{ navigator.vibrate([200,100,200]); }catch(e){}
+    try{ new Audio('data:audio/wav;base64,UklGRlQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVgAAACA...').play().catch(()=>{}); }catch(e){}
+    // Notificación visual
+    if(Notification && Notification.permission === "granted"){
+      new Notification("¡Nuevo cliente!", {body: reservas[reservas.length-1].nombre + " se acaba de registrar por NFC", icon:"/icon-192-new.png"});
     }
-    document.getElementById('name').value='';document.getElementById('mobile').value='';
-    loadOwner(); setTimeout(()=>msg.style.display='none',2000);
-  }catch(e){msg.className='msg err';msg.innerText='Error: '+e.message;}
+  }
+  lastCount = reservas.length;
 }
-async function addPoints(id,pts){
-  const cli=all.find(c=>c.id===id); if(!cli) return;
-  if(cli.points>=200){alert('Ya tiene 200 - usa CANJEAR para reiniciar a 0');return;}
-  const nuevo=Math.min(200,cli.points+pts);
-  const {error}=await sb.from('clients').update({points:nuevo,last_visit:new Date().toISOString()}).eq('id',id);
-  if(error){alert(error.message);return;}
-  loadOwner();
+function verificarTodo(){
+  reservas = loadReservas();
+  const checks = document.querySelectorAll('#lista-reservas input[type=checkbox]:not(:disabled)');
+  let sum=0;
+  checks.forEach(c=>{ if(c.checked){ const id=+c.dataset.id; const r=reservas.find(x=>x.id===id); if(r){r.verificado=true; r.nuevo=false; sum+=20;} } });
+  localStorage.setItem('barber_reservas', JSON.stringify(reservas));
+  render();
+  if(sum>0) alert(`Verificados! +${sum} pts repartidos`);
+  else alert('Selecciona al menos uno');
 }
-async function delClient(id){
-  if(!confirm('¿Borrar cliente definitivamente?')) return;
-  const cli=all.find(c=>c.id===id);
-  try{
-    if(cli) await sb.from('pending_requests').delete().eq('mobile',cli.mobile);
-    const {error}=await sb.from('clients').delete().eq('id',id);
-    if(error) throw error;
-    loadOwner();
-  }catch(e){ alert('Error borrar: '+e.message); }
+function registrarNFC(){
+  const n=document.getElementById('nfc-nombre').value.trim();
+  const m=document.getElementById('nfc-movil').value.trim();
+  if(!n||!m) return document.getElementById('nfc-msg').textContent='Rellena nombre y móvil';
+  reservas = loadReservas();
+  const nueva = {id: Date.now(), nombre: n, hora: new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}), servicio: 'Registro NFC - '+m, verificado:false, nuevo:true};
+  reservas.push(nueva);
+  localStorage.setItem('barber_reservas', JSON.stringify(reservas));
+  document.getElementById('nfc-msg').textContent='¡'+n+' registrado! Aparece arriba en tiempo real.';
+  document.getElementById('nfc-nombre').value=''; document.getElementById('nfc-movil').value='';
+  render();
 }
-async function canjear(id){
-  const cli=all.find(c=>c.id===id); if(!cli) return;
-  if(!confirm('¿'+cli.name+' canjeó 50% OFF? Se reiniciará a 0 pts.')) return;
-  const {error}=await sb.from('clients').update({points:0,last_visit:new Date().toISOString()}).eq('id',id);
-  if(error){alert('Error canjear: '+error.message);return;}
-  await sb.from('pending_requests').delete().eq('mobile',cli.mobile);
-  const msg=document.getElementById('del-msg');
-  msg.style.display='block';msg.className='msg ok';msg.innerText='✅ '+cli.name+' canjeado a 0 pts';
-  loadOwner();
-  setTimeout(()=>msg.style.display='none',3000);
-}
-async function aprobarResena(reqId,mobile){
-  if(!confirm('¿Verificaste en Google que la reseña existe? Se sumarán +20 pts')) return;
-  const {data:cli}=await sb.from('clients').select('*').eq('mobile',mobile).maybeSingle();
-  if(!cli){alert('Cliente no encontrado');return;}
-  if(cli.points>=200){alert('Ya tiene 200 - debe CANJEAR primero');return;}
-  const nuevo=Math.min(200,cli.points+20);
-  const {error}=await sb.from('clients').update({points:nuevo,last_visit:new Date().toISOString()}).eq('id',cli.id);
-  if(error){alert(error.message);return;}
-  await sb.from('pending_requests').update({status:'verificado'}).eq('id',reqId);
-  loadOwner();
-}
-async function rechazarReq(id){ if(!confirm('¿Marcar como falsa y borrar solicitud?'))return; const {error}=await sb.from('pending_requests').delete().eq('id',id); if(error){alert(error.message);return;} loadOwner(); }
-function exportCSV(){
-  let csv='Nombre,Movil,Puntos,Ultima Visita,Dias Inactivo\n';
-  all.forEach(c=>{
-    const last=c.last_visit?new Date(c.last_visit).toLocaleDateString('es-ES'):'';
-    const diff=c.last_visit?Math.floor((Date.now()-new Date(c.last_visit).getTime())/(1000*60*60*24)):'';
-    csv+=`"${c.name}","${c.mobile}",${c.points},"${last}",${diff}\n`;
-  });
-  const blob=new Blob([csv],{type:'text/csv'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='clientes_barberbox.csv'; a.click();
-}
-if(localStorage.getItem('barberbox_dueno_ok')==='1'){ document.getElementById('login').style.display='none'; document.getElementById('app').style.display='block'; loadOwner(); }
-</script></body></html>
+
+// --- TIEMPO REAL: escucha cambios ---
+window.addEventListener('storage', (e)=>{ if(e.key==='barber_reservas') render(); });
+
+// Poll cada 2 segundos por si es la misma pestaña / otro dispositivo en misma red localStorage
+setInterval(render, 2000);
+
+// Pide permiso notificaciones
+if("Notification" in window && Notification.permission !== "granted"){ Notification.requestPermission(); }
+
+render();
+</script>
+</body>
+</html>
