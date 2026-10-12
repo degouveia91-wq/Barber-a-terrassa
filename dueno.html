@@ -181,5 +181,19 @@ function exportCSV(){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download='clientes_barberbox.csv'; a.click();
 }
-if(localStorage.getItem('barberbox_dueno_ok')==='1'){ document.getElementById('login').style.display='none'; document.getElementById('app').style.display='block'; loadOwner(); }
+if(localStorage.getItem('barberbox_dueno_ok')==='1'){ document.getElementById('login').style.display='none'; document.getElementById('app').style.display='block'; loadOwner(); }let _rt;
+function startRealtime(){
+  if(_rt) return;
+  let t;
+  const refresh=()=>{
+    if(document.getElementById('app').style.display!=='block') return;
+    clearTimeout(t); t=setTimeout(loadOwner,400);
+  };
+  _rt=sb.channel('dueno-live')
+    .on('postgres_changes',{event:'*',schema:'public',table:'clients'},refresh)
+    .on('postgres_changes',{event:'*',schema:'public',table:'pending_requests'},refresh)
+    .subscribe();
+}
+startRealtime();
+
 </script></body></html>
