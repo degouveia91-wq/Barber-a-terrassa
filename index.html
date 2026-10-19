@@ -12,37 +12,115 @@ input{width:100%;background:#0f0f0f;border:1px solid #2a2a2a;color:#fff;padding:
 .progress{height:12px;background:#222;border-radius:10px;overflow:hidden;margin:10px 0} .progress-bar{height:100%;background:#f5c542;transition:width .3s}
 .msg{padding:10px;border-radius:10px;margin:10px 0;text-align:center;font-size:13px;display:none} .msg.ok{display:block;background:#22c55e11;border:1px solid #22c55e55;color:#22c55e} .msg.warn{display:block;background:#f5c54211;border:1px solid #f5c54255;color:#f5c542} .msg.err{display:block;background:#ef444411;border:1px solid #ef444455;color:#ef4444}
 .small-hint{color:#888;font-size:11px;text-align:center;margin-top:6px}
+.reward{display:none;background:#22c55e11;border:1px solid #22c55e55;color:#22c55e;padding:12px;border-radius:12px;margin-top:10px;font-weight:800}
+.counter-label{color:#aaa;font-size:12px;font-weight:700;letter-spacing:.5px}
+.divider{border:0;border-top:1px solid #222;margin:18px 0}
+/* PROTECCIÓN DE DATOS */
+.consent{display:flex;gap:10px;align-items:flex-start;margin:4px 0 10px;font-size:12px;color:#ccc;line-height:1.4;cursor:pointer}
+.consent input{width:20px;height:20px;min-width:20px;margin:1px 0 0;padding:0;accent-color:#f5c542}
+.consent a,.legal-info a{color:#f5c542;text-decoration:underline;cursor:pointer}
+.legal-info{font-size:11px;color:#888;line-height:1.5;margin:0 0 12px;padding:10px;border:1px solid #222;border-radius:10px;background:#0f0f0f}
+.legal-info b{color:#aaa}
+.modal{position:fixed;inset:0;background:#000c;display:none;align-items:center;justify-content:center;padding:14px;z-index:50}
+.modal.open{display:flex}
+.modal-box{background:#151515;border:1px solid #2a2a2a;border-radius:16px;max-width:480px;width:100%;max-height:85vh;display:flex;flex-direction:column}
+.modal-body{padding:16px;overflow-y:auto;font-size:12px;color:#bbb;line-height:1.55}
+.modal-body h4{color:#f5c542;margin:14px 0 4px;font-size:13px}
+.modal-body h3{margin:0 0 8px;color:#fff}
+.modal-foot{padding:12px 16px;border-top:1px solid #222}
 </style></head><body>
-<div class="header"><b>💈 BARBERBOX</b><br><small style="color:#888">200 pts = 50% OFF · Corte +10 auto · Reseña +20 verificado por dueño</small></div>
+<div class="header"><b>💈 BARBERBOX</b><br><small style="color:#888">8 cortes = 50% OFF · 5 productos = 50% OFF en el siguiente</small></div>
 <div id="not-registered" class="card" style="display:none">
 <h3 style="color:#f5c542;margin:0 0 8px">¡Bienvenido! NFC escaneado</h3>
-<p style="color:#888;font-size:13px;margin:0 0 12px">Regístrate una vez. Después cada visita suma puntos. Corte suma auto. Reseña la verifica el dueño por la noche.</p>
-<input id="c-name" placeholder="Tu nombre"><input id="c-mobile" placeholder="Tu móvil">
-<button id="btn-reg" class="btn">REGISTRARME</button>
+<p style="color:#888;font-size:13px;margin:0 0 12px">Regístrate una vez. Después cada visita suma 1 corte y cada compra suma 1 producto.</p>
+<input id="c-name" placeholder="Tu nombre"><input id="c-mobile" placeholder="Tu móvil" inputmode="tel">
+<div class="legal-info">
+<b>Información básica sobre protección de datos</b><br>
+<b>Responsable:</b> [RAZÓN SOCIAL DE LA BARBERÍA], NIF [NIF/CIF], [DIRECCIÓN].<br>
+<b>Finalidad:</b> gestionar tu tarjeta de fidelización y avisarte, solo cuando corresponda, de que has conseguido tu descuento.<br>
+<b>Legitimación:</b> tu consentimiento (casilla de abajo).<br>
+<b>Destinatarios:</b> no se ceden datos a terceros, salvo obligación legal o proveedores técnicos necesarios para el servicio.<br>
+<b>Derechos:</b> acceso, rectificación, supresión, oposición, limitación y portabilidad en [EMAIL DE CONTACTO].
+</div>
+<label class="consent"><input type="checkbox" id="c-consent"><span>He leído y acepto la <a onclick="openPolicy(event)">Política de Privacidad</a> y doy mi consentimiento para que se traten mi nombre y teléfono para gestionar mi tarjeta de fidelización y avisarme si consigo el descuento.</span></label>
+<button id="btn-reg" class="btn" disabled>REGISTRARME</button>
 <div id="reg-msg" class="msg"></div>
 </div>
 <div id="registered" class="card" style="display:none">
 <h3 id="c-hello"></h3>
+
 <div style="text-align:center;margin:16px 0">
+<div class="counter-label">✂️ CORTES</div>
 <div style="font-size:64px;font-weight:900"><span id="c-points">0</span></div>
-<div style="color:#888;font-size:13px">/ 200 puntos para 50% OFF</div>
+<div style="color:#888;font-size:13px">/ 8 cortes para 50% OFF</div>
 <div class="progress"><div id="c-progress" class="progress-bar" style="width:0%"></div></div>
-<div id="c-reward" style="display:none;background:#22c55e11;border:1px solid #22c55e55;color:#22c55e;padding:12px;border-radius:12px;margin-top:10px;font-weight:800">¡50% OFF disponible! Muestra al dueño para canjear</div>
+<div id="c-reward" class="reward">¡50% OFF disponible! Muestra al dueño para canjear</div>
 </div>
+
+<hr class="divider">
+
+<div style="text-align:center;margin:16px 0">
+<div class="counter-label">🛍️ PRODUCTOS</div>
+<div style="font-size:64px;font-weight:900"><span id="p-count">0</span></div>
+<div style="color:#888;font-size:13px">/ 5 productos para 50% OFF en el siguiente</div>
+<div class="progress"><div id="p-progress" class="progress-bar" style="width:0%"></div></div>
+<div id="p-reward" class="reward">¡50% OFF en tu próximo producto! Muestra al dueño para canjear</div>
+</div>
+
 <p id="c-last" style="color:#666;font-size:11px;text-align:center"></p>
 <div id="status-msg" class="msg"></div>
-<button id="btn-corte" class="btn" style="margin-bottom:10px">✂️ HE VENIDO A CORTARME (+10 PTS)</button>
+<button id="btn-corte" class="btn" style="margin-bottom:10px">✂️ HE VENIDO A CORTARME (+1 CORTE)</button>
 <div id="corte-hint" class="small-hint"></div>
-<button id="btn-resena" class="btn btn-white" style="margin-top:6px">⭐ DEJÉ RESEÑA EN GOOGLE (+20 PTS)</button>
-<div id="resena-hint" class="small-hint"></div>
-<p style="color:#666;font-size:11px;text-align:center;margin-top:10px">Corte: suma auto al instante. Reseña: queda pendiente hasta que el dueño verifique en Google.</p>
-<button onclick="resetLocal()" style="background:none;border:0;color:#444;font-size:11px;margin-top:14px;width:100%">Cambiar móvil</button>
+<button id="btn-producto" class="btn btn-white" style="margin-top:6px">🛍️ HE COMPRADO UN PRODUCTO (+1)</button>
+<div id="producto-hint" class="small-hint"></div>
+<p style="color:#666;font-size:11px;text-align:center;margin-top:10px">Cada corte y cada producto se suman al instante.</p>
+<p style="text-align:center;margin:10px 0 0"><a onclick="openPolicy(event)" style="color:#666;font-size:11px;text-decoration:underline;cursor:pointer">Política de privacidad</a></p>
+<button onclick="resetLocal()" style="background:none;border:0;color:#444;font-size:11px;margin-top:8px;width:100%">Cambiar móvil</button>
 </div>
+
+<!-- SEGUNDA CAPA: POLÍTICA DE PRIVACIDAD -->
+<div id="policy-modal" class="modal" onclick="if(event.target===this)closePolicy()">
+<div class="modal-box">
+<div class="modal-body">
+<h3>Política de privacidad</h3>
+<h4>1. Responsable del tratamiento</h4>
+<p>[RAZÓN SOCIAL DE LA BARBERÍA], con NIF [NIF/CIF], domicilio en [DIRECCIÓN COMPLETA] y correo de contacto [EMAIL DE CONTACTO].</p>
+<h4>2. Datos y finalidad</h4>
+<p>Tratamos tu nombre y tu número de teléfono móvil para: (a) gestionar tu participación en el programa de fidelización de la barbería (cortes y compras de producto) y (b) avisarte puntualmente, por WhatsApp o SMS, de que has conseguido tu descuento. No enviamos publicidad ni promociones con estos datos.</p>
+<h4>3. Legitimación</h4>
+<p>Tu consentimiento, que das al marcar la casilla del formulario de registro (art. 6.1.a RGPD). Puedes retirarlo en cualquier momento sin que ello afecte a lo ya realizado.</p>
+<h4>4. Destinatarios</h4>
+<p>No cedemos tus datos a terceros, salvo obligación legal. Los datos se alojan con proveedores tecnológicos que actúan como encargados del tratamiento y solo los usan para prestar el servicio.</p>
+<h4>5. Conservación</h4>
+<p>Conservaremos tus datos mientras sigas dado de alta en el programa o hasta que solicites su supresión o retires tu consentimiento. Después se mantendrán bloqueados solo durante los plazos legales de posibles responsabilidades.</p>
+<h4>6. Tus derechos</h4>
+<p>Puedes ejercer tus derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad escribiendo a [EMAIL DE CONTACTO]. Si consideras que no hemos tratado tus datos correctamente, puedes reclamar ante la Agencia Española de Protección de Datos (www.aepd.es).</p>
+<p style="color:#666;margin-top:12px">Versión v1.0</p>
+</div>
+<div class="modal-foot"><button class="btn" onclick="closePolicy()">CERRAR</button></div>
+</div>
+</div>
+
 <script>
 const SUPABASE_URL="https://sxpczzosxyuishwrwytv.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4cGN6em9zeHl1aXNod3J3eXR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0NTMyOTcsImV4cCI6MjEwNjAyOTI5N30.X9dFdEsLwem85GpdYEMkeGItPFtkrfyWG3uHXwfgfJI";
+const POLICY_VERSION="v1.0";
+const MAX_CORTES=8;      // cortes para el 50% OFF
+const MAX_PRODUCTOS=5;   // productos para el 50% OFF en el siguiente
+const BLOQUEO_DIAS=7;    // se cambiará a 6 en el paso 3
+const BLOQUEO_MS=BLOQUEO_DIAS*24*60*60*1000;
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 function showMsg(id,text,type){const el=document.getElementById(id);el.className='msg '+type;el.innerText=text;el.style.display='block';if(type!=='err')setTimeout(()=>{el.style.display='none';},7000);}
+function openPolicy(e){if(e)e.preventDefault();document.getElementById('policy-modal').classList.add('open');}
+function closePolicy(){document.getElementById('policy-modal').classList.remove('open');}
+function pintarContadores(cortes,productos){
+  document.getElementById('c-points').innerText=cortes;
+  document.getElementById('c-progress').style.width=Math.min(100,Math.round((cortes/MAX_CORTES)*100))+'%';
+  document.getElementById('c-reward').style.display=cortes>=MAX_CORTES?'block':'none';
+  document.getElementById('p-count').innerText=productos;
+  document.getElementById('p-progress').style.width=Math.min(100,Math.round((productos/MAX_PRODUCTOS)*100))+'%';
+  document.getElementById('p-reward').style.display=productos>=MAX_PRODUCTOS?'block':'none';
+}
 async function load(){
   const mob=localStorage.getItem('barberbox_mobile');
   const nam=localStorage.getItem('barberbox_name');
@@ -54,12 +132,9 @@ async function load(){
     const {data,error}=await sb.from('clients').select('*').eq('mobile',mob).maybeSingle();
     if(error)throw error;
     if(data){
-      const pct=Math.min(100,Math.round((data.points/200)*100));
       document.getElementById('c-hello').innerText='Hola, '+data.name;
-      document.getElementById('c-points').innerText=data.points;
-      document.getElementById('c-progress').style.width=pct+'%';
-      document.getElementById('c-last').innerText='Última visita: '+new Date(data.last_visit).toLocaleString('es-ES');
-      document.getElementById('c-reward').style.display=data.points>=200?'block':'none';
+      pintarContadores(data.points||0,data.products||0);
+      document.getElementById('c-last').innerText=data.last_visit?'Última visita: '+new Date(data.last_visit).toLocaleString('es-ES'):'';
       localStorage.setItem('barberbox_name',data.name);
     }
     await actualizarLimites();
@@ -68,83 +143,93 @@ async function load(){
 async function actualizarLimites(){
   const mobile=localStorage.getItem('barberbox_mobile');
   if(!mobile)return;
+  const btnCorte=document.getElementById('btn-corte');
+  const btnProd=document.getElementById('btn-producto');
+  let cortes=0, productos=0;
   try{
-    const {data:cliTop}=await sb.from('clients').select('points').eq('mobile',mobile).maybeSingle();
-    if(cliTop && cliTop.points>=200){
-      document.getElementById('btn-corte').disabled=true;
-      document.getElementById('btn-corte').innerText='🏆 200 PTS - CANJEA TU 50% OFF EN BARBERÍA';
-      document.getElementById('btn-resena').disabled=true;
-      document.getElementById('btn-resena').innerText='🏆 200 PTS - CANJEA TU 50% OFF';
-      showMsg('status-msg','¡Llegaste a 200 puntos! Muestra esto al dueño para tu 50% OFF. Él reiniciará a 0.','ok');
-      return;
-    }
+    const {data:cli}=await sb.from('clients').select('points,products').eq('mobile',mobile).maybeSingle();
+    if(cli){cortes=cli.points||0;productos=cli.products||0;}
   }catch(_){}
-  const oneWeekAgo=new Date(Date.now()-7*24*60*60*1000).toISOString();
-  const lastCorteLocal=localStorage.getItem('barberbox_last_corte');
-  const lastResenaLocal=localStorage.getItem('barberbox_last_resena');
-  let bloqueoCorte=false, bloqueoResena=false;
-  if(lastCorteLocal && (Date.now()-parseInt(lastCorteLocal)) < 7*24*60*60*1000) bloqueoCorte=true;
-  if(lastResenaLocal && (Date.now()-parseInt(lastResenaLocal)) < 7*24*60*60*1000) bloqueoResena=true;
-  try{
-    const {data:cortes}=await sb.from('pending_requests').select('*').eq('mobile',mobile).eq('type','corte 10pts').gte('created_at',oneWeekAgo).limit(1);
-    const {data:resenas}=await sb.from('pending_requests').select('*').eq('mobile',mobile).eq('type','resena Google 20pts').gte('created_at',oneWeekAgo).limit(1);
-    const btnCorte=document.getElementById('btn-corte');
-    const btnResena=document.getElementById('btn-resena');
-    if((cortes && cortes.length>0) || bloqueoCorte){
-      const fecha=cortes && cortes.length>0 ? new Date(cortes[0].created_at) : new Date(parseInt(lastCorteLocal));
-      const disponible=new Date(fecha.getTime()+7*24*60*60*1000);
+  const cortesLleno=cortes>=MAX_CORTES;
+  const productosLleno=productos>=MAX_PRODUCTOS;
+  const avisos=[];
+  // ---- CORTES ----
+  if(cortesLleno){
+    btnCorte.disabled=true;
+    btnCorte.innerText='🏆 '+MAX_CORTES+' CORTES - CANJEA TU 50% OFF';
+    document.getElementById('corte-hint').innerText='';
+    avisos.push('¡Llegaste a '+MAX_CORTES+' cortes! Muestra esto al dueño para tu 50% OFF. Él reiniciará tus cortes a 0.');
+  }else{
+    const oneWeekAgo=new Date(Date.now()-BLOQUEO_MS).toISOString();
+    const lastCorteLocal=localStorage.getItem('barberbox_last_corte');
+    let bloqueoCorte=!!(lastCorteLocal && (Date.now()-parseInt(lastCorteLocal)) < BLOQUEO_MS);
+    let fechaCorte=bloqueoCorte?new Date(parseInt(lastCorteLocal)):null;
+    try{
+      const {data:cortesReq}=await sb.from('pending_requests').select('*').eq('mobile',mobile).eq('type','corte 10pts').gte('created_at',oneWeekAgo).limit(1);
+      if(cortesReq && cortesReq.length>0){bloqueoCorte=true;fechaCorte=new Date(cortesReq[0].created_at);}
+    }catch(e){console.log(e);}
+    if(bloqueoCorte){
+      const disponible=new Date(fechaCorte.getTime()+BLOQUEO_MS);
       btnCorte.disabled=true;
-      btnCorte.innerText='✔️ +10 YA SUMADO - Bloqueado 7 días';
-      document.getElementById('corte-hint').innerText='Sumado '+fecha.toLocaleDateString('es-ES')+' · Disponible '+disponible.toLocaleDateString('es-ES');
+      btnCorte.innerText='✔️ +1 CORTE YA SUMADO - Bloqueado '+BLOQUEO_DIAS+' días';
+      document.getElementById('corte-hint').innerText='Sumado '+fechaCorte.toLocaleDateString('es-ES')+' · Disponible '+disponible.toLocaleDateString('es-ES');
     }else{
       btnCorte.disabled=false;
-      btnCorte.innerText='✂️ HE VENIDO A CORTARME (+10 PTS)';
-      document.getElementById('corte-hint').innerText='Suma +10 auto al instante';
+      btnCorte.innerText='✂️ HE VENIDO A CORTARME (+1 CORTE)';
+      document.getElementById('corte-hint').innerText='Suma +1 corte al instante';
     }
-    if((resenas && resenas.length>0) || bloqueoResena){
-      const fecha=resenas && resenas.length>0 ? new Date(resenas[0].created_at) : new Date(parseInt(lastResenaLocal));
-      const disponible=new Date(fecha.getTime()+7*24*60*60*1000);
-      btnResena.disabled=true;
-      btnResena.innerText='⏳ RESEÑA EN VERIFICACIÓN - Dueño revisará esta noche';
-      document.getElementById('resena-hint').innerText='Enviada '+fecha.toLocaleDateString('es-ES')+' · Dueño verificará en Google';
-    }else{
-      btnResena.disabled=false;
-      btnResena.innerText='⭐ DEJÉ RESEÑA EN GOOGLE (+20 PTS)';
-      document.getElementById('resena-hint').innerText='Queda pendiente hasta que el dueño verifique tu reseña en Google';
-    }
-  }catch(e){
-    console.log(e);
-    if(bloqueoCorte){document.getElementById('btn-corte').disabled=true;document.getElementById('btn-corte').innerText='✔️ Bloqueado 7 días';}
-    if(bloqueoResena){document.getElementById('btn-resena').disabled=true;document.getElementById('btn-resena').innerText='⏳ En verificación';}
   }
+  // ---- PRODUCTOS ----
+  if(productosLleno){
+    btnProd.disabled=true;
+    btnProd.innerText='🏆 '+MAX_PRODUCTOS+' PRODUCTOS - CANJEA TU 50% OFF';
+    document.getElementById('producto-hint').innerText='';
+    avisos.push('¡Llegaste a '+MAX_PRODUCTOS+' productos! Muestra esto al dueño para tu 50% OFF en el siguiente. Él reiniciará tus productos a 0.');
+  }else{
+    const lastProdLocal=localStorage.getItem('barberbox_last_producto');
+    const bloqueoProd=!!(lastProdLocal && (Date.now()-parseInt(lastProdLocal)) < BLOQUEO_MS);
+    if(bloqueoProd){
+      const fecha=new Date(parseInt(lastProdLocal));
+      const disponible=new Date(fecha.getTime()+BLOQUEO_MS);
+      btnProd.disabled=true;
+      btnProd.innerText='✔️ +1 PRODUCTO YA SUMADO - Bloqueado '+BLOQUEO_DIAS+' días';
+      document.getElementById('producto-hint').innerText='Sumado '+fecha.toLocaleDateString('es-ES')+' · Disponible '+disponible.toLocaleDateString('es-ES');
+    }else{
+      btnProd.disabled=false;
+      btnProd.innerText='🛍️ HE COMPRADO UN PRODUCTO (+1)';
+      document.getElementById('producto-hint').innerText='Suma +1 producto al instante';
+    }
+  }
+  if(avisos.length>0)showMsg('status-msg',avisos.join(' '),'ok');
 }
 async function registrar(){
   const name=document.getElementById('c-name').value.trim();
   const mobile=document.getElementById('c-mobile').value.trim();
+  const consent=document.getElementById('c-consent').checked;
   const btn=document.getElementById('btn-reg');
   if(!name||!mobile){showMsg('reg-msg','Falta nombre o móvil','err');return;}
+  if(!consent){showMsg('reg-msg','Debes aceptar la Política de Privacidad para registrarte','err');return;}
   btn.disabled=true;const old=btn.innerText;btn.innerText='Registrando...';
   try{
     const {data:ex,error:e1}=await sb.from('clients').select('*').eq('mobile',mobile).maybeSingle();
     if(e1)throw e1;
     if(ex){localStorage.setItem('barberbox_mobile',mobile);localStorage.setItem('barberbox_name',ex.name);showMsg('reg-msg','¡Ya estabas registrado! Entrando...','ok');setTimeout(load,600);return;}
-    const {error}=await sb.from('clients').insert({name,mobile,points:0});
+    const {error}=await sb.from('clients').insert({name,mobile,points:0,consent:true,consent_at:new Date().toISOString(),policy_version:POLICY_VERSION});
     if(error)throw error;
     localStorage.setItem('barberbox_mobile',mobile);
     localStorage.setItem('barberbox_name',name);
     showMsg('reg-msg','¡Registrado!','ok');
     setTimeout(load,600);
-  }catch(err){showMsg('reg-msg','Error: '+err.message,'err');}finally{btn.disabled=false;btn.innerText=old;}
+  }catch(err){showMsg('reg-msg','Error: '+err.message,'err');}finally{btn.innerText=old;btn.disabled=!document.getElementById('c-consent').checked;}
 }
-// CORTE +10 AUTOMÁTICO
+// CORTE +1 AUTOMÁTICO
 async function corteAuto(){
   const mobile=localStorage.getItem('barberbox_mobile');
-  const name=localStorage.getItem('barberbox_name')||'Cliente';
   if(!mobile){showMsg('status-msg','No hay móvil','err');return;}
   const lastKey='barberbox_last_corte';
   const lastLocal=localStorage.getItem(lastKey);
-  if(lastLocal && (Date.now()-parseInt(lastLocal)) < 7*24*60*60*1000){
-    const disponible=new Date(parseInt(lastLocal)+7*24*60*60*1000);
+  if(lastLocal && (Date.now()-parseInt(lastLocal)) < BLOQUEO_MS){
+    const disponible=new Date(parseInt(lastLocal)+BLOQUEO_MS);
     showMsg('status-msg','Ya sumaste corte - Disponible el '+disponible.toLocaleDateString('es-ES'),'warn');return;
   }
   const btn=document.getElementById('btn-corte');
@@ -153,49 +238,47 @@ async function corteAuto(){
     const {data:cli,error:eSel}=await sb.from('clients').select('*').eq('mobile',mobile).maybeSingle();
     if(eSel) throw eSel;
     if(!cli) throw new Error('Cliente no encontrado');
-    if(cli.points>=200){showMsg('status-msg','Ya tienes 200 - canjea tu 50% OFF','warn');await actualizarLimites();return;}
-    const nuevo=Math.min(200, cli.points+10);
+    if((cli.points||0)>=MAX_CORTES){showMsg('status-msg','Ya tienes '+MAX_CORTES+' cortes - canjea tu 50% OFF','warn');await actualizarLimites();return;}
+    const nuevo=Math.min(MAX_CORTES,(cli.points||0)+1);
     const {error:eUpd}=await sb.from('clients').update({points:nuevo,last_visit:new Date().toISOString()}).eq('id',cli.id);
     if(eUpd) throw eUpd;
     localStorage.setItem(lastKey, Date.now().toString());
-    document.getElementById('c-points').innerText=nuevo;
-    document.getElementById('c-progress').style.width=Math.min(100,Math.round((nuevo/200)*100))+'%';
-    document.getElementById('c-reward').style.display=nuevo>=200?'block':'none';
-    showMsg('status-msg','¡+10 puntos! Ahora '+nuevo+'/200','ok');
+    pintarContadores(nuevo,cli.products||0);
+    showMsg('status-msg',nuevo>=MAX_CORTES?'¡Completaste '+MAX_CORTES+' cortes! Tienes 50% OFF':'¡+1 corte! Ahora '+nuevo+'/'+MAX_CORTES,'ok');
     await actualizarLimites();
-  }catch(err){showMsg('status-msg','Error: '+err.message,'err');btn.disabled=false;btn.innerText='✂️ HE VENIDO A CORTARME (+10 PTS)';}
+  }catch(err){showMsg('status-msg','Error: '+err.message,'err');btn.disabled=false;btn.innerText='✂️ HE VENIDO A CORTARME (+1 CORTE)';}
 }
-// RESEÑA +20 - QUEDA PENDIENTE PARA DUEÑO VERIFICAR POR LA NOCHE
-async function resenaPendiente(){
+// PRODUCTO +1 AUTOMÁTICO
+async function productoAuto(){
   const mobile=localStorage.getItem('barberbox_mobile');
-  const name=localStorage.getItem('barberbox_name')||'Cliente';
   if(!mobile){showMsg('status-msg','No hay móvil','err');return;}
-  const lastKey='barberbox_last_resena';
+  const lastKey='barberbox_last_producto';
   const lastLocal=localStorage.getItem(lastKey);
-  if(lastLocal && (Date.now()-parseInt(lastLocal)) < 7*24*60*60*1000){
-    const disponible=new Date(parseInt(lastLocal)+7*24*60*60*1000);
-    showMsg('status-msg','Ya solicitaste reseña - Disponible el '+disponible.toLocaleDateString('es-ES'),'warn');return;
+  if(lastLocal && (Date.now()-parseInt(lastLocal)) < BLOQUEO_MS){
+    const disponible=new Date(parseInt(lastLocal)+BLOQUEO_MS);
+    showMsg('status-msg','Ya sumaste producto - Disponible el '+disponible.toLocaleDateString('es-ES'),'warn');return;
   }
-  const btn=document.getElementById('btn-resena');
-  btn.disabled=true;btn.innerText='Enviando...';
+  const btn=document.getElementById('btn-producto');
+  btn.disabled=true;btn.innerText='Sumando...';
   try{
-    const oneWeekAgo=new Date(Date.now()-7*24*60*60*1000).toISOString();
-    const {data:recientes}=await sb.from('pending_requests').select('*').eq('mobile',mobile).eq('type','resena Google 20pts').gte('created_at',oneWeekAgo).limit(1);
-    if(recientes && recientes.length>0){showMsg('status-msg','Ya solicitaste reseña esta semana','warn');await actualizarLimites();return;}
-    const {data:cli}=await sb.from('clients').select('points').eq('mobile',mobile).maybeSingle();
-    if(cli && cli.points>=200){showMsg('status-msg','Ya tienes 200 - canjea','warn');await actualizarLimites();return;}
-    const {error}=await sb.from('pending_requests').insert({mobile,name,type:'resena Google 20pts',status:'pendiente'});
-    if(error) throw error;
+    const {data:cli,error:eSel}=await sb.from('clients').select('*').eq('mobile',mobile).maybeSingle();
+    if(eSel) throw eSel;
+    if(!cli) throw new Error('Cliente no encontrado');
+    if((cli.products||0)>=MAX_PRODUCTOS){showMsg('status-msg','Ya tienes '+MAX_PRODUCTOS+' productos - canjea tu 50% OFF','warn');await actualizarLimites();return;}
+    const nuevo=Math.min(MAX_PRODUCTOS,(cli.products||0)+1);
+    const {error:eUpd}=await sb.from('clients').update({products:nuevo,last_visit:new Date().toISOString()}).eq('id',cli.id);
+    if(eUpd) throw eUpd;
     localStorage.setItem(lastKey, Date.now().toString());
-    btn.innerText='⏳ EN VERIFICACIÓN - Dueño revisará en Google esta noche';
-    showMsg('status-msg','¡Solicitud enviada! El dueño verificará tu reseña en Google esta noche y te dará +20 pts','ok');
+    pintarContadores(cli.points||0,nuevo);
+    showMsg('status-msg',nuevo>=MAX_PRODUCTOS?'¡Completaste '+MAX_PRODUCTOS+' productos! Tienes 50% OFF en el siguiente':'¡+1 producto! Ahora '+nuevo+'/'+MAX_PRODUCTOS,'ok');
     await actualizarLimites();
-  }catch(err){showMsg('status-msg','Error: '+err.message,'err');btn.disabled=false;btn.innerText='⭐ DEJÉ RESEÑA EN GOOGLE (+20 PTS)';}
+  }catch(err){showMsg('status-msg','Error: '+err.message,'err');btn.disabled=false;btn.innerText='🛍️ HE COMPRADO UN PRODUCTO (+1)';}
 }
-function resetLocal(){if(confirm('¿Borrar móvil?')){localStorage.removeItem('barberbox_mobile');localStorage.removeItem('barberbox_name');localStorage.removeItem('barberbox_last_corte');localStorage.removeItem('barberbox_last_resena');location.reload();}}
+function resetLocal(){if(confirm('¿Borrar móvil?')){localStorage.removeItem('barberbox_mobile');localStorage.removeItem('barberbox_name');localStorage.removeItem('barberbox_last_corte');localStorage.removeItem('barberbox_last_producto');localStorage.removeItem('barberbox_last_resena');location.reload();}}
 document.getElementById('btn-reg').addEventListener('click',registrar);
+document.getElementById('c-consent').addEventListener('change',e=>{document.getElementById('btn-reg').disabled=!e.target.checked;});
 document.getElementById('btn-corte').addEventListener('click',corteAuto);
-document.getElementById('btn-resena').addEventListener('click',resenaPendiente);
-document.getElementById('c-mobile').addEventListener('keydown',e=>{if(e.key==='Enter')registrar();});
+document.getElementById('btn-producto').addEventListener('click',productoAuto);
+document.getElementById('c-mobile').addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('c-consent').checked)registrar();});
 load();
 </script></body></html>
