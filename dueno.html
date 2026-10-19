@@ -13,40 +13,56 @@ input{width:100%;background:#0f0f0f;border:1px solid #2a2a2a;color:#fff;padding:
 .btn{padding:8px 12px;border-radius:8px;border:0;font-weight:800;cursor:pointer;font-size:12px}.btn-gold{background:#f5c542;color:#000}.btn-white{background:#fff;color:#000}.btn-green{background:#22c55e;color:#000}.btn-red{background:#ef4444;color:#fff}
 .client{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #1e1e1e}
 .client.top{background:#f5c5420a;border:1px solid #f5c54233;border-radius:12px;padding:10px;margin-bottom:6px}
+.client.col{display:block}
+.row{display:flex;align-items:center;gap:8px;margin:5px 0}
+.row .lbl{font-size:12px;width:18px;text-align:center}
+.row .progress{flex:1;margin:0}
+.row .cnt{font-size:11px;min-width:96px;text-align:right}
+.tag{background:#22c55e;color:#000;font-size:8px;padding:2px 6px;border-radius:10px;font-weight:800}
+.acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .progress{height:6px;background:#222;border-radius:10px;overflow:hidden;margin:4px 0}.progress-bar{height:100%;background:#f5c542;transition:width .3s}
 #login{max-width:380px;margin:80px auto;padding:20px}
 .msg{padding:10px;border-radius:10px;margin:8px 0;text-align:center;font-size:12px;display:none;word-break:break-word}.msg.ok{display:block;background:#22c55e11;border:1px solid #22c55e55;color:#22c55e}.msg.err{display:block;background:#ef444411;border:1px solid #ef444455;color:#ef4444}.msg.warn{display:block;background:#f5c54211;border:1px solid #f5c54255;color:#f5c542}
 .tab{display:flex;gap:6px;margin-bottom:10px}.tab button{flex:1;padding:10px;border-radius:10px;border:1px solid #333;background:#0f0f0f;color:#888;font-weight:700}.tab button.active{background:#f5c542;color:#000;border-color:#f5c542}
 .small{color:#666;font-size:11px}
 </style></head><body>
-<div id="login" class="card"><h3 style="color:#f5c542;margin:0 0 10px">ÁREA DUEÑO - BARBERBOX PRO</h3><p style="color:#888;font-size:13px">Clave 1999</p><input id="pass" type="password" placeholder="••••"><button class="btn btn-gold" style="width:100%;padding:12px" onclick="checkPass()">ENTRAR</button><div id="login-msg" class="msg"></div></div>
-<div id="app" style="display:none"><div class="header"><div><b>💈 DUEÑO PRO</b></div><div style="display:flex;gap:6px;align-items:center"><div id="count-top" class="badge gold">0</div><div id="status" class="badge">Cargando...</div><button onclick="logoutDueno()" style="background:none;border:0;color:#666;font-size:11px">Salir</button></div></div><div class="wrap">
+<div id="login" class="card"><h3 style="color:#f5c542;margin:0 0 10px">ÁREA DUEÑO - BARBERBOX PRO</h3><p style="color:#888;font-size:13px">Introduce tu clave</p><input id="pass" type="password" placeholder="••••" onkeydown="if(event.key==='Enter')checkPass()"><button class="btn btn-gold" style="width:100%;padding:12px" onclick="checkPass()">ENTRAR</button><div id="login-msg" class="msg"></div></div>
+<div id="app" style="display:none"><div class="header"><div><b>💈 DUEÑO PRO</b></div><div style="display:flex;gap:6px;align-items:center"><div id="count-top" class="badge gold">0</div><div id="status" class="badge">Cargando...</div><button onclick="logoutDueno()" style="background:none;border:0;color:#666;font-size:11px">Cerrar sesión</button></div></div><div class="wrap">
 
-<div class="card" style="border-color:#22c55e;background:#22c55e0a"><h3 style="color:#22c55e;margin:0 0 4px;font-size:12px">✅ MODO FINAL - DUEÑO LIBRE</h3><small class="small">• Corte +10 = automático (cliente suma solo)<br>• Reseña +20 = queda aquí para que verifiques en Google por la noche y aceptes<br>• 200 pts = tope, no suma más, solo tú puedes CANJEAR a 0</small></div>
+<div class="card" style="border-color:#22c55e;background:#22c55e0a"><h3 style="color:#22c55e;margin:0 0 4px;font-size:12px">✅ MODO FINAL - DUEÑO LIBRE</h3><small class="small">• Corte +1 = automático (el cliente suma solo)<br>• Producto +1 = automático (el cliente suma solo)<br>• 8 cortes = 50% OFF y 5 productos = 50% OFF en el siguiente: es el tope, no suma más y solo tú puedes CANJEAR a 0</small></div>
 
 <div class="tab"><button id="tab-rank" class="active" onclick="switchTab('rank')">🏆 RANKING (Mayor a menor)</button><button id="tab-all" onclick="switchTab('all')">📋 REGISTRO TOTAL</button></div>
 
 <div id="view-rank">
-<div class="card" style="border-color:#f5c542;background:#f5c5420a"><h3 style="margin:0 0 6px;color:#f5c542;font-size:12px">🔔 RESEÑAS POR VERIFICAR (Revisa en Google por la noche)</h3><div id="pending-list"></div><small class="small">Verifica que la reseña existe en tu ficha de Google y dale +20 OK. Si es falsa, dale X.</small></div>
-
-<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0;color:#888;font-size:11px">🏆 RANKING - MAYOR A MENOR (200 = 50% OFF - TOPE)</h3><input id="q" placeholder="Buscar" oninput="filterList()" style="max-width:110px"></div><div id="list-rank"></div></div>
+<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0;color:#888;font-size:11px">🏆 RANKING - MAYOR A MENOR (8 cortes = 50% OFF · 5 productos = 50% OFF)</h3><input id="q" placeholder="Buscar" oninput="filterList()" style="max-width:110px"></div><div id="list-rank"></div></div>
 </div>
 
 <div id="view-all" style="display:none">
 <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0;color:#888;font-size:11px">📋 REGISTRO TOTAL DE CLIENTES (Para promociones)</h3><input id="q2" placeholder="Buscar nombre/tel" oninput="filterList2()" style="max-width:130px"></div><div style="display:flex;gap:6px;margin-bottom:8px"><small class="small" id="stat-inactivos" style="background:#111;padding:4px 8px;border-radius:20px;border:1px solid #333"></small><small class="small" id="stat-total2" style="background:#111;padding:4px 8px;border-radius:20px;border:1px solid #333"></small></div><div id="list-all"></div><div style="margin-top:10px;display:flex;gap:6px"><button class="btn btn-white" style="flex:1" onclick="exportCSV()">📤 EXPORTAR CSV PARA WHATSAPP</button></div></div>
 </div>
 
-<div class="card"><h3 style="margin:0 0 8px;color:#888;font-size:11px">➕ AGREGAR MANUAL</h3><div style="display:flex;gap:6px"><input id="name" placeholder="Nombre" style="flex:1"><input id="mobile" placeholder="Móvil" style="flex:1"><input id="points" type="number" value="10" style="width:70px"><button class="btn btn-gold" onclick="addClient()">GUARDAR</button></div><div id="manual-msg" class="msg"></div></div>
+<div class="card"><h3 style="margin:0 0 8px;color:#888;font-size:11px">➕ AGREGAR MANUAL</h3>
+<div style="display:flex;gap:6px"><input id="name" placeholder="Nombre" style="flex:1"><input id="mobile" placeholder="Móvil" style="flex:1"></div>
+<div style="display:flex;gap:6px;align-items:flex-end"><div style="flex:1"><div class="small">Cortes a sumar</div><input id="add-cortes" type="number" min="0" max="8" value="0"></div><div style="flex:1"><div class="small">Productos a sumar</div><input id="add-prod" type="number" min="0" max="5" value="0"></div><button class="btn btn-gold" style="margin-bottom:6px;padding:10px 12px" onclick="addClient()">GUARDAR</button></div>
+<label class="small" style="display:flex;gap:6px;align-items:flex-start;margin:4px 0 6px;cursor:pointer"><input type="checkbox" id="add-consent" style="width:auto;margin:2px 0 0"><span>El cliente ha aceptado la política de privacidad</span></label>
+<div id="manual-msg" class="msg"></div></div>
 
 <div id="del-msg" class="msg"></div>
 </div></div>
 <script>
-const CLAVE_DUENO="1999";
+// La clave ya no aparece escrita en el código: solo su huella (hash)
+const CLAVE_HASH="415ad342cb180daded663f8f2102548c3798f30b5e24f1f434144cdc9e381fd3";
+const MAX_CORTES=8;     // cortes para el 50% OFF
+const MAX_PRODUCTOS=5;  // productos para el 50% OFF en el siguiente
+const POLICY_VERSION="v1.0";
 const SUPABASE_URL="https://sxpczzosxyuishwrwytv.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN4cGN6em9zeHl1aXNod3J3eXR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0NTMyOTcsImV4cCI6MjEwNjAyOTI5N30.X9dFdEsLwem85GpdYEMkeGItPFtkrfyWG3uHXwfgfJI";
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 let all=[], filteredAll=[];
 let currentTab='rank';
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('barberbox-dueno:'+s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
 
 function switchTab(t){
   currentTab=t;
@@ -56,44 +72,52 @@ function switchTab(t){
   document.getElementById('view-all').style.display=t==='all'?'block':'none';
 }
 
-function checkPass(){ const p=document.getElementById('pass').value.trim(); if(p===CLAVE_DUENO){ localStorage.setItem('barberbox_dueno_ok','1'); document.getElementById('login').style.display='none'; document.getElementById('app').style.display='block'; loadOwner(); }else{ const m=document.getElementById('login-msg'); m.style.display='block';m.className='msg err';m.innerText='Clave incorrecta'; } }
-function logoutDueno(){ if(confirm('¿Salir?')){localStorage.removeItem('barberbox_dueno_ok');location.reload();} }
+function entrar(){ document.getElementById('login').style.display='none'; document.getElementById('app').style.display='block'; loadOwner(); }
+async function checkPass(){
+  const m=document.getElementById('login-msg');
+  try{
+    const p=document.getElementById('pass').value.trim();
+    const h=await sha(p);
+    if(h===CLAVE_HASH){ localStorage.setItem('barberbox_dueno_ok',h); entrar(); }
+    else{ m.style.display='block';m.className='msg err';m.innerText='Clave incorrecta'; }
+  }catch(e){ m.style.display='block';m.className='msg err';m.innerText='Error: '+e.message; }
+}
+function logoutDueno(){ if(confirm('¿Cerrar sesión?')){localStorage.removeItem('barberbox_dueno_ok');location.reload();} }
 
 async function loadOwner(){
   try{
     const {data,error}=await sb.from('clients').select('*').order('points',{ascending:false}).limit(500);
     if(error) throw error;
     all=data||[];
-    all.sort((a,b)=>b.points-a.points);
+    all.sort((a,b)=>((b.points||0)-(a.points||0))||((b.products||0)-(a.products||0)));
     document.getElementById('count-top').innerText=all.length+' clientes';
     document.getElementById('status').innerText='Conectado ✓ '+all.length;
     document.getElementById('status').className='badge ok';
     document.getElementById('stat-total2').innerText='Total: '+all.length;
     const inactivos=all.filter(c=>{ const last=c.last_visit?new Date(c.last_visit):null; if(!last) return true; const diff=(Date.now()-last.getTime())/(1000*60*60*24); return diff>30; }).length;
     document.getElementById('stat-inactivos').innerText='Inactivos +30d: '+inactivos;
-    renderRank(all);
-    renderAll(all);
+    filterList();
+    filterList2();
   }catch(e){
     document.getElementById('status').innerText='Error: '+e.message;
-    document.getElementById('list-rank').innerHTML='<small style="color:#ff4444">'+e.message+'</small>';
+    document.getElementById('list-rank').innerHTML='<small style="color:#ff4444">'+esc(e.message)+'</small>';
   }
-  try{
-    const {data:pend,error:e2}=await sb.from('pending_requests').select('*').eq('status','pendiente').eq('type','resena Google 20pts').order('created_at',{ascending:false}).limit(100);
-    if(e2) throw e2;
-    const pendientes=pend||[];
-    document.getElementById('pending-list').innerHTML=pendientes.length?pendientes.map(p=>{
-      const fecha=new Date(p.created_at);
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1e1e1e"><div><b>${p.name}</b> <small style="color:#666">${p.mobile}</small><br><small style="color:#f5c542">⭐ Reseña Google +20 pts - Verificar en Google</small><br><small style="color:#555">${fecha.toLocaleString('es-ES')}</small></div><div style="display:flex;gap:4px"><button onclick="aprobarResena('${p.id}','${p.mobile}')" style="background:#22c55e;color:#000;border:0;padding:10px 12px;border-radius:8px;font-weight:800">✓ +20 VERIFICADO</button><button onclick="rechazarReq('${p.id}')" style="background:#1a1a1a;color:#ef4444;border:1px solid #333;padding:10px 12px;border-radius:8px">X FALSO</button></div></div>`
-    }).join(''):'<small style="color:#666">Sin reseñas por verificar - Todo al día ✅</small>';
-  }catch(e){ document.getElementById('pending-list').innerHTML='<small style="color:#ff4444">Error reseñas: '+e.message+'</small>'; }
 }
 
 function renderRank(arr){
   if(!arr.length){ document.getElementById('list-rank').innerHTML='<small style="color:#666">Sin clientes</small>'; return; }
   document.getElementById('list-rank').innerHTML=arr.map((c,i)=>{
-    const pct=Math.min(100,Math.round((c.points/200)*100));
-    const isTop=c.points>=200;
-    return `<div class="client ${isTop?'top':''}"><div style="min-width:0;flex:1"><div style="display:flex;gap:6px;align-items:center"><span style="color:#666;font-size:10px">#${i+1}</span><b>${c.name}</b> <small style="color:#666">${c.mobile}</small>${isTop?'<span style="background:#22c55e;color:#000;font-size:8px;padding:2px 6px;border-radius:10px;font-weight:800">50% OFF</span>':''}</div><div class="progress"><div class="progress-bar" style="width:${pct}%;background:${isTop?'#22c55e':'#f5c542'}"></div></div><small style="color:${isTop?'#22c55e':'#888'}">${c.points}/200 ${isTop?' - TOPE - CANJEAR' : ''}</small></div><div style="display:flex;gap:4px;align-items:center">${isTop?`<button onclick="canjear('${c.id}')" class="btn btn-green" style="padding:8px 10px">CANJEAR 0</button>`:`<button onclick="addPoints('${c.id}',10)" class="btn btn-gold" style="padding:6px 8px">+10</button>`}<button onclick="delClient('${c.id}')" style="background:#1f1f1f;color:#ff4444;border:1px solid #333;padding:6px 8px;border-radius:8px;font-weight:800">X</button></div></div>`
+    const cor=c.points||0, pro=c.products||0;
+    const fullC=cor>=MAX_CORTES, fullP=pro>=MAX_PRODUCTOS;
+    const pctC=Math.min(100,Math.round((cor/MAX_CORTES)*100));
+    const pctP=Math.min(100,Math.round((pro/MAX_PRODUCTOS)*100));
+    const id=esc(c.id);
+    return `<div class="client col ${(fullC||fullP)?'top':''}">
+<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span style="color:#666;font-size:10px">#${i+1}</span><b>${esc(c.name)}</b> <small style="color:#666">${esc(c.mobile)}</small></div>
+<div class="row"><span class="lbl">✂️</span><div class="progress"><div class="progress-bar" style="width:${pctC}%;background:${fullC?'#22c55e':'#f5c542'}"></div></div><span class="cnt" style="color:${fullC?'#22c55e':'#888'}">${cor}/${MAX_CORTES} ${fullC?'<span class="tag">50% OFF</span>':''}</span></div>
+<div class="row"><span class="lbl">🛍️</span><div class="progress"><div class="progress-bar" style="width:${pctP}%;background:${fullP?'#22c55e':'#f5c542'}"></div></div><span class="cnt" style="color:${fullP?'#22c55e':'#888'}">${pro}/${MAX_PRODUCTOS} ${fullP?'<span class="tag">50% OFF</span>':''}</span></div>
+<div class="acts">${fullC?`<button onclick="canjearCortes('${id}')" class="btn btn-green">CANJEAR CORTES → 0</button>`:`<button onclick="addCortes('${id}')" class="btn btn-gold">+1 CORTE</button>`}${fullP?`<button onclick="canjearProductos('${id}')" class="btn btn-green">CANJEAR PRODUCTOS → 0</button>`:`<button onclick="addProductos('${id}')" class="btn btn-white">+1 PRODUCTO</button>`}<button onclick="delClient('${id}')" style="background:#1f1f1f;color:#ff4444;border:1px solid #333;padding:6px 10px;border-radius:8px;font-weight:800;margin-left:auto">X</button></div>
+</div>`;
   }).join('');
 }
 function renderAll(arr){
@@ -103,39 +127,59 @@ function renderAll(arr){
     const last=c.last_visit?new Date(c.last_visit):null;
     const diffDays=last?Math.floor((Date.now()-last.getTime())/(1000*60*60*24)) : 999;
     const isInactive=diffDays>30;
-    return `<div class="client" style="background:${isInactive?'#ef44440a':''}"><div style="min-width:0;flex:1"><b>${c.name}</b> <small style="color:#666">${c.mobile}</small><br><small style="color:${isInactive?'#ef4444':'#888'}">📅 ${last?last.toLocaleDateString('es-ES'):'Nunca'} · Hace ${diffDays>999?'mucho':diffDays+' días'} ${isInactive?'· INACTIVO - ¡Enviar promo!' : ''}</small><br><small style="color:#555">${c.points} pts · ${c.mobile}</small></div><div style="display:flex;gap:4px"><a href="https://wa.me/${c.mobile.replace(/[^0-9]/g,'')}" target="_blank" style="background:#25D366;color:#000;padding:6px 8px;border-radius:8px;text-decoration:none;font-weight:800;font-size:11px">WA</a></div></div>`
+    const consent=c.consent
+      ? `<small style="color:#22c55e">🔒 Política aceptada · ${c.consent_at?new Date(c.consent_at).toLocaleString('es-ES'):'sin fecha'} · ${esc(c.policy_version||'')}</small>`
+      : `<small style="color:#f5c542">⚠️ Sin aceptación de política registrada</small>`;
+    return `<div class="client" style="background:${isInactive?'#ef44440a':''}"><div style="min-width:0;flex:1"><b>${esc(c.name)}</b> <small style="color:#666">${esc(c.mobile)}</small><br><small style="color:${isInactive?'#ef4444':'#888'}">📅 ${last?last.toLocaleDateString('es-ES'):'Nunca'} · Hace ${diffDays>999?'mucho':diffDays+' días'} ${isInactive?'· INACTIVO - ¡Enviar promo!' : ''}</small><br><small style="color:#555">✂️ ${c.points||0}/${MAX_CORTES} cortes · 🛍️ ${c.products||0}/${MAX_PRODUCTOS} productos</small><br>${consent}</div><div style="display:flex;gap:4px"><a href="https://wa.me/${String(c.mobile).replace(/[^0-9]/g,'')}" target="_blank" style="background:#25D366;color:#000;padding:6px 8px;border-radius:8px;text-decoration:none;font-weight:800;font-size:11px">WA</a></div></div>`
   }).join('');
 }
-function filterList(){ const q=document.getElementById('q').value.toLowerCase(); renderRank(all.filter(c=>c.name.toLowerCase().includes(q)||c.mobile.includes(q))); }
-function filterList2(){ const q=document.getElementById('q2').value.toLowerCase(); renderAll(all.filter(c=>c.name.toLowerCase().includes(q)||c.mobile.includes(q))); }
+function filterList(){ const q=document.getElementById('q').value.toLowerCase(); renderRank(all.filter(c=>String(c.name).toLowerCase().includes(q)||String(c.mobile).includes(q))); }
+function filterList2(){ const q=document.getElementById('q2').value.toLowerCase(); renderAll(all.filter(c=>String(c.name).toLowerCase().includes(q)||String(c.mobile).includes(q))); }
 
 async function addClient(){
-  const name=document.getElementById('name').value.trim(),mobile=document.getElementById('mobile').value.trim(); let points=parseInt(document.getElementById('points').value)||10; points=Math.min(200,Math.max(0,points));
+  const name=document.getElementById('name').value.trim(),mobile=document.getElementById('mobile').value.trim();
+  let cor=parseInt(document.getElementById('add-cortes').value)||0; let pro=parseInt(document.getElementById('add-prod').value)||0;
+  cor=Math.min(MAX_CORTES,Math.max(0,cor)); pro=Math.min(MAX_PRODUCTOS,Math.max(0,pro));
+  const consent=document.getElementById('add-consent').checked;
   const msg=document.getElementById('manual-msg');
   if(!name||!mobile){msg.style.display='block';msg.className='msg err';msg.innerText='Falta nombre o móvil';return;}
   msg.style.display='block';msg.className='msg ok';msg.innerText='Guardando...';
   try{
+    const consentFields=consent?{consent:true,consent_at:new Date().toISOString(),policy_version:POLICY_VERSION+' (alta manual)'}:{};
     const {data:ex}=await sb.from('clients').select('*').eq('mobile',mobile).maybeSingle();
     if(ex){
-      if(ex.points>=200){msg.className='msg warn';msg.innerText='Ya tiene 200 - usa CANJEAR';return;}
-      const nuevo=Math.min(200,ex.points+points);
-      const {error}=await sb.from('clients').update({name,points:nuevo,last_visit:new Date().toISOString()}).eq('id',ex.id);
+      const nuevoC=Math.min(MAX_CORTES,(ex.points||0)+cor);
+      const nuevoP=Math.min(MAX_PRODUCTOS,(ex.products||0)+pro);
+      const cambiaConsent=consent&&!ex.consent;
+      if(nuevoC===(ex.points||0)&&nuevoP===(ex.products||0)&&!cambiaConsent&&(cor>0||pro>0)){msg.className='msg warn';msg.innerText='Ya tiene el tope - usa CANJEAR';return;}
+      const upd={name,points:nuevoC,products:nuevoP,last_visit:new Date().toISOString()};
+      if(cambiaConsent)Object.assign(upd,consentFields);
+      const {error}=await sb.from('clients').update(upd).eq('id',ex.id);
       if(error) throw error;
-      msg.innerText='Actualizado a '+nuevo+' ✓';
+      msg.innerText='Actualizado: '+nuevoC+' cortes · '+nuevoP+' productos ✓';
     }else{
-      const {error}=await sb.from('clients').insert({name,mobile,points});
+      const {error}=await sb.from('clients').insert(Object.assign({name,mobile,points:cor,products:pro},consentFields));
       if(error) throw error;
       msg.innerText='Guardado ✓';
     }
     document.getElementById('name').value='';document.getElementById('mobile').value='';
+    document.getElementById('add-cortes').value=0;document.getElementById('add-prod').value=0;document.getElementById('add-consent').checked=false;
     loadOwner(); setTimeout(()=>msg.style.display='none',2000);
   }catch(e){msg.className='msg err';msg.innerText='Error: '+e.message;}
 }
-async function addPoints(id,pts){
+async function addCortes(id){
   const cli=all.find(c=>c.id===id); if(!cli) return;
-  if(cli.points>=200){alert('Ya tiene 200 - usa CANJEAR para reiniciar a 0');return;}
-  const nuevo=Math.min(200,cli.points+pts);
+  if((cli.points||0)>=MAX_CORTES){alert('Ya tiene '+MAX_CORTES+' cortes - usa CANJEAR para reiniciar a 0');return;}
+  const nuevo=Math.min(MAX_CORTES,(cli.points||0)+1);
   const {error}=await sb.from('clients').update({points:nuevo,last_visit:new Date().toISOString()}).eq('id',id);
+  if(error){alert(error.message);return;}
+  loadOwner();
+}
+async function addProductos(id){
+  const cli=all.find(c=>c.id===id); if(!cli) return;
+  if((cli.products||0)>=MAX_PRODUCTOS){alert('Ya tiene '+MAX_PRODUCTOS+' productos - usa CANJEAR para reiniciar a 0');return;}
+  const nuevo=Math.min(MAX_PRODUCTOS,(cli.products||0)+1);
+  const {error}=await sb.from('clients').update({products:nuevo,last_visit:new Date().toISOString()}).eq('id',id);
   if(error){alert(error.message);return;}
   loadOwner();
 }
@@ -149,41 +193,42 @@ async function delClient(id){
     loadOwner();
   }catch(e){ alert('Error borrar: '+e.message); }
 }
-async function canjear(id){
+async function canjearCortes(id){
   const cli=all.find(c=>c.id===id); if(!cli) return;
-  if(!confirm('¿'+cli.name+' canjeó 50% OFF? Se reiniciará a 0 pts.')) return;
+  if(!confirm('¿'+cli.name+' canjeó su 50% OFF en corte? Sus cortes se reiniciarán a 0.')) return;
   const {error}=await sb.from('clients').update({points:0,last_visit:new Date().toISOString()}).eq('id',id);
   if(error){alert('Error canjear: '+error.message);return;}
   await sb.from('pending_requests').delete().eq('mobile',cli.mobile);
   const msg=document.getElementById('del-msg');
-  msg.style.display='block';msg.className='msg ok';msg.innerText='✅ '+cli.name+' canjeado a 0 pts';
+  msg.style.display='block';msg.className='msg ok';msg.innerText='✅ '+cli.name+': cortes canjeados, vuelve a 0';
   loadOwner();
   setTimeout(()=>msg.style.display='none',3000);
 }
-async function aprobarResena(reqId,mobile){
-  if(!confirm('¿Verificaste en Google que la reseña existe? Se sumarán +20 pts')) return;
-  const {data:cli}=await sb.from('clients').select('*').eq('mobile',mobile).maybeSingle();
-  if(!cli){alert('Cliente no encontrado');return;}
-  if(cli.points>=200){alert('Ya tiene 200 - debe CANJEAR primero');return;}
-  const nuevo=Math.min(200,cli.points+20);
-  const {error}=await sb.from('clients').update({points:nuevo,last_visit:new Date().toISOString()}).eq('id',cli.id);
-  if(error){alert(error.message);return;}
-  await sb.from('pending_requests').update({status:'verificado'}).eq('id',reqId);
+async function canjearProductos(id){
+  const cli=all.find(c=>c.id===id); if(!cli) return;
+  if(!confirm('¿'+cli.name+' canjeó su 50% OFF en producto? Sus productos se reiniciarán a 0.')) return;
+  const {error}=await sb.from('clients').update({products:0,last_visit:new Date().toISOString()}).eq('id',id);
+  if(error){alert('Error canjear: '+error.message);return;}
+  const msg=document.getElementById('del-msg');
+  msg.style.display='block';msg.className='msg ok';msg.innerText='✅ '+cli.name+': productos canjeados, vuelve a 0';
   loadOwner();
+  setTimeout(()=>msg.style.display='none',3000);
 }
-async function rechazarReq(id){ if(!confirm('¿Marcar como falsa y borrar solicitud?'))return; const {error}=await sb.from('pending_requests').delete().eq('id',id); if(error){alert(error.message);return;} loadOwner(); }
 function exportCSV(){
-  let csv='Nombre,Movil,Puntos,Ultima Visita,Dias Inactivo\n';
+  const q=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';
+  let csv='Nombre,Movil,Cortes,Productos,Ultima Visita,Dias Inactivo,Acepta Politica,Fecha Aceptacion,Version Politica\n';
   all.forEach(c=>{
     const last=c.last_visit?new Date(c.last_visit).toLocaleDateString('es-ES'):'';
     const diff=c.last_visit?Math.floor((Date.now()-new Date(c.last_visit).getTime())/(1000*60*60*24)):'';
-    csv+=`"${c.name}","${c.mobile}",${c.points},"${last}",${diff}\n`;
+    const fc=c.consent_at?new Date(c.consent_at).toLocaleString('es-ES'):'';
+    csv+=`${q(c.name)},${q(c.mobile)},${c.points||0},${c.products||0},${q(last)},${diff},${c.consent?'SI':'NO'},${q(fc)},${q(c.policy_version)}\n`;
   });
   const blob=new Blob([csv],{type:'text/csv'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download='clientes_barberbox.csv'; a.click();
 }
-if(localStorage.getItem('barberbox_dueno_ok')==='1'){ document.getElementById('login').style.display='none'; document.getElementById('app').style.display='block'; loadOwner(); }let _rt;
+if(localStorage.getItem('barberbox_dueno_ok')===CLAVE_HASH){ entrar(); }
+let _rt;
 function startRealtime(){
   if(_rt) return;
   let t;
@@ -193,7 +238,6 @@ function startRealtime(){
   };
   _rt=sb.channel('dueno-live')
     .on('postgres_changes',{event:'*',schema:'public',table:'clients'},refresh)
-    .on('postgres_changes',{event:'*',schema:'public',table:'pending_requests'},refresh)
     .subscribe();
 }
 startRealtime();
